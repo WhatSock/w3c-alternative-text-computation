@@ -23,48 +23,63 @@ http://whatsock.com/training/#hd2
 
 1. Standard use of role="link" with nested content structures.
 http://whatsock.com/test/Alternative%20Text%20Calculation/focusable%20role=link.html
+
 The Accessibility Tree should match: Name: "My name is Bryan Eli the weird. Where are my marbles?" Description: ""
+
 Browser Test Results:
-Win7 IE11: Name: "Hello,  Myname is Zambino the weird. and don't you forget it. Where in the world are my marbles?" Description: ""
-Win7 Firefox: Name: "Hello, My name is Eli the weird." Description: ""
-Win7 Chrome: Name: "Myname is Eli the weird. Where in are my marbles?" Description: ""
-iOS Safari: Name: "My name is Zambino the weird. Where are my marbles?" Description: ""
+
+* Win7 IE11: Name: "Hello,  Myname is Zambino the weird. and don't you forget it. Where in the world are my marbles?" Description: ""
+* Win7 Firefox: Name: "Hello, My name is Eli the weird." Description: ""
+* Win7 Chrome: Name: "Myname is Eli the weird. Where in are my marbles?" Description: ""
+* iOS Safari: Name: "My name is Zambino the weird. Where are my marbles?" Description: ""
 
 2. Standard form field with aria-labelledby to recursively process embedded markup.
 http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20aria-labelledby.html
+
 The Accessibility Tree should match: Name: "My name is Bryan Eli the weird. Where are my marbles?" Description: ""
+
 Browser Test Results:
-Win7 IE11: Name: "" Description: ""
-Win7 Firefox: Name: "Hello, My name is Eli the weird." Description: ""
-Win7 Chrome: Name: "Hello, Myname is Bryan Zambino the weird. and don't you forget it. Where in the world are my marbles?" Description: ""
-iOS Safari: Name: "My name is Eli the weird. Where in are my marbles?" Description: ""
+
+* Win7 IE11: Name: "" Description: ""
+* Win7 Firefox: Name: "Hello, My name is Eli the weird." Description: ""
+* Win7 Chrome: Name: "Hello, Myname is Bryan Zambino the weird. and don't you forget it. Where in the world are my marbles?" Description: ""
+* iOS Safari: Name: "My name is Eli the weird. Where in are my marbles?" Description: ""
 
 3. Standard form field that uses an HTML label element with matching 'for' and 'id' attributes.
 http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20label%20element.html
+
 The Accessibility Tree should match: Name: "My name is Bryan Eli the weird. Where are my marbles?" Description: ""
+
 Browser Test Results:
-Win7 IE11: Name: "Hello, Myname is Zambino the weird. and don't you forget it. Where in the world are my marbles?" Description: ""
-Win7 Firefox: Name: "Hello, My name is Eli the weird." Description: ""
-Win7 Chrome: Name: "Myname isGaraventathe weird.Whereare my marbles?" Description: ""
-iOS Safari: Name: "My name is Zambino the weird. Where are my marbles?" Description: ""
+
+* Win7 IE11: Name: "Hello, Myname is Zambino the weird. and don't you forget it. Where in the world are my marbles?" Description: ""
+* Win7 Firefox: Name: "Hello, My name is Eli the weird." Description: ""
+* Win7 Chrome: Name: "Myname isGaraventathe weird.Whereare my marbles?" Description: ""
+* iOS Safari: Name: "My name is Zambino the weird. Where are my marbles?" Description: ""
 
 4. Standard form field that uses aria-label to set the Name and aria-describedby to set the Description.
 http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20aria-describedby.html
+
 The Accessibility Tree should match: Name: "Important stuff" Description: "My name is Bryan Eli the weird. Where are my marbles?"
+
 Browser Test Results:
-Win7 IE11: Name: "Important stuff" Description: ""
-Win7 Firefox: Name: "Important stuff" Description: "Hello, My name is Eli the weird."
-Win7 Chrome: Name: "Important stuff" Description: " Hello, Myname is Bryan Zambino the weird. and don't you forget it. Where in the world are my marbles?"
-iOS Safari: Name: "Important stuff" Description: "My name is Eli the weird. Where in are my marbles?"
+
+* Win7 IE11: Name: "Important stuff" Description: ""
+* Win7 Firefox: Name: "Important stuff" Description: "Hello, My name is Eli the weird."
+* Win7 Chrome: Name: "Important stuff" Description: " Hello, Myname is Bryan Zambino the weird. and don't you forget it. Where in the world are my marbles?"
+* iOS Safari: Name: "Important stuff" Description: "My name is Eli the weird. Where in are my marbles?"
 
 5. Standard form field that uses aria-labelledby to set the Name and aria-describedby to set the Description including hidden sections that surround the referenced elements.
 http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20aria-describedby%20+%20hidden.html
+
 The Accessibility Tree should match: Name: "Important stuff" Description: "My name is Bryan Eli the weird. Where are my marbles?"
+
 Browser Test Results:
-Win7 IE11: Name: "Important stuff" Description: ""
-Win7 Firefox: Name: "Important stuff" Description: "Hello, Myname is Zambino the weird. and don't you forget it. Where in the world are my marbles?"
-Win7 Chrome: Name: "Important stuff" Description: " Hello, Myname is Bryan Zambino the weird. and don't you forget it. Where in the world are my marbles?"
-iOS Safari: Name: "Important stuff" Description: "Hello, My name is Zambino the weird. and don't you forget it. Where in the world are my marbles?"
+
+* Win7 IE11: Name: "Important stuff" Description: ""
+* Win7 Firefox: Name: "Important stuff" Description: "Hello, Myname is Zambino the weird. and don't you forget it. Where in the world are my marbles?"
+* Win7 Chrome: Name: "Important stuff" Description: " Hello, Myname is Bryan Zambino the weird. and don't you forget it. Where in the world are my marbles?"
+* iOS Safari: Name: "Important stuff" Description: "Hello, My name is Zambino the weird. and don't you forget it. Where in the world are my marbles?"
 
 Conclusion:
 
