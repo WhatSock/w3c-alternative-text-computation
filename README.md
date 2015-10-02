@@ -21,7 +21,9 @@ Currently, accurate recursion within browsers is inconsistently and unreliably s
 The following test pages demonstrate this, which can be verified using Accessibility Tree examination utilities as documented at
 http://whatsock.com/training/#hd2
 
-1. Standard use of role="link" with nested content structures.
+Standard use of role="link" with nested content structures.
+-----
+
 http://whatsock.com/test/Alternative%20Text%20Calculation/focusable%20role=link.html
 
 The Accessibility Tree should match: Name: "My name is Bryan Eli the weird. Where are my marbles?" Description: ""
@@ -33,7 +35,9 @@ Browser Test Results:
 * Win7 Chrome: Name: "Myname is Eli the weird. Where in are my marbles?" Description: ""
 * iOS Safari: Name: "My name is Zambino the weird. Where are my marbles?" Description: ""
 
-2. Standard form field with aria-labelledby to recursively process embedded markup.
+Standard form field with aria-labelledby to recursively process embedded markup.
+-----
+
 http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20aria-labelledby.html
 
 The Accessibility Tree should match: Name: "My name is Bryan Eli the weird. Where are my marbles?" Description: ""
@@ -45,7 +49,9 @@ Browser Test Results:
 * Win7 Chrome: Name: "Hello, Myname is Bryan Zambino the weird. and don't you forget it. Where in the world are my marbles?" Description: ""
 * iOS Safari: Name: "My name is Eli the weird. Where in are my marbles?" Description: ""
 
-3. Standard form field that uses an HTML label element with matching 'for' and 'id' attributes.
+Standard form field that uses an HTML label element with matching 'for' and 'id' attributes.
+-----
+
 http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20label%20element.html
 
 The Accessibility Tree should match: Name: "My name is Bryan Eli the weird. Where are my marbles?" Description: ""
@@ -57,7 +63,9 @@ Browser Test Results:
 * Win7 Chrome: Name: "Myname isGaraventathe weird.Whereare my marbles?" Description: ""
 * iOS Safari: Name: "My name is Zambino the weird. Where are my marbles?" Description: ""
 
-4. Standard form field that uses aria-label to set the Name and aria-describedby to set the Description.
+Standard form field that uses aria-label to set the Name and aria-describedby to set the Description.
+-----
+
 http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20aria-describedby.html
 
 The Accessibility Tree should match: Name: "Important stuff" Description: "My name is Bryan Eli the weird. Where are my marbles?"
@@ -69,7 +77,9 @@ Browser Test Results:
 * Win7 Chrome: Name: "Important stuff" Description: " Hello, Myname is Bryan Zambino the weird. and don't you forget it. Where in the world are my marbles?"
 * iOS Safari: Name: "Important stuff" Description: "My name is Eli the weird. Where in are my marbles?"
 
-5. Standard form field that uses aria-labelledby to set the Name and aria-describedby to set the Description including hidden sections that surround the referenced elements.
+Standard form field that uses aria-labelledby to set the Name and aria-describedby to set the Description including hidden sections that surround the referenced elements.
+-----
+
 http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20aria-describedby%20+%20hidden.html
 
 The Accessibility Tree should match: Name: "Important stuff" Description: "My name is Bryan Eli the weird. Where are my marbles?"
@@ -81,7 +91,8 @@ Browser Test Results:
 * Win7 Chrome: Name: "Important stuff" Description: " Hello, Myname is Bryan Zambino the weird. and don't you forget it. Where in the world are my marbles?"
 * iOS Safari: Name: "Important stuff" Description: "Hello, My name is Zambino the weird. and don't you forget it. Where in the world are my marbles?"
 
-Conclusion:
+Conclusion
+-----
 
 Whenever external containers are referenced via aria-labelledby or aria-describedby or the HTML label element using matching 'for' and 'id' attributes, the recursive Alternative Text Computation should process the same subtrees even when aria-labelledby and aria-describedby referenced parent containers are hidden using CSS. When comparing these in the Accessibility Tree though, even within the same browsers, these algorithms don't match between the most common browsers.
 
