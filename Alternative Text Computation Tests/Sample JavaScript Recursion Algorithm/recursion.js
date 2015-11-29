@@ -1,5 +1,5 @@
 /*!
-[Excerpted from Visual ARIA Bookmarklet (11/27/2015)]
+[Excerpted from Visual ARIA Bookmarklet (11/28/2015)]
 ( https://raw.githubusercontent.com/accdc/aria-matrices/master/The%20ARIA%20Role%20Conformance%20Matrices/visual-aria/roles.js )
 */
 
@@ -146,8 +146,8 @@ var calcNames = function(node){
 	if (trim(desc) && !rPresentation)
 		accDesc = desc;
 
-	accName = trim(accName.replace(/\s\s+/g, ' '));
-	accDesc = trim(accDesc.replace(/\s\s+/g, ' '));
+	accName = trim(accName.replace(/\s/g, ' ').replace(/\s\s+/g, ' '));
+	accDesc = trim(accDesc.replace(/\s/g, ' ').replace(/\s\s+/g, ' '));
 
 	return 'accName: "' + accName + '"\naccDescription: "' + accDesc + '"';
 };
