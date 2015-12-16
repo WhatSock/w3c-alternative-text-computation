@@ -1,7 +1,7 @@
 # w3c-alternative-text-computation
 A study of browser and Assistive Technology support for the W3C Alternative Text Computation.
 
-Updated: 11/27/2015
+Updated: 12/16/2015
 
 To ensure interoperability, the W3C Alternative Text Computation should be supported in all browsers equally. So I built 5 tests to see how well this is implemented; by using the same convoluted markup structure for each that combines many various aspects of labelling, including programmatically hidden content and nested markup structures. If equally supported, all browsers would reflect the same strings as shown below for the Name and Description calculation.
 
@@ -34,7 +34,7 @@ Browser Test Results:
 
 * Win7 IE11: Name: "Hello,  My name is Zambino the weird. (QED) and don't you forget it. Where in the world are my marbles?" Description: ""
 * Win7 Firefox: Name: "Hello, My name is Eli the weird. ( QED )" Description: ""
-* Win7 Chrome: Name: "My name is Eli the weird. (QED) Where in are my marbles?" Description: ""
+* (MATCHES) Win7 Chrome: Name: "My name is Garaventa the weird. (QED) Where are my marbles?" Description: ""
 * iOS Safari: Name: "My name is Zambino the weird. (QED) Where are my marbles?" Description: ""
 
 Standard form field with aria-labelledby to recursively process embedded markup.
@@ -48,7 +48,7 @@ Browser Test Results:
 
 * Win7 IE11: Name: "" Description: ""
 * Win7 Firefox: Name: "Hello, My name is Eli the weird. ( QED )" Description: ""
-* Win7 Chrome: Name: "Hello, My name is Bryan Zambino the weird. (QED) and don't you forget it. Where in the world are my marbles?" Description: ""
+* (MATCHES) Win7 Chrome: Name: "My name is Garaventa the weird. (QED) Where are my marbles?" Description: ""
 * iOS Safari: Name: "My name is Eli the weird. (QED) Where in are my marbles?" Description: ""
 
 Standard form field that uses an HTML label element with matching 'for' and 'id' attributes.
@@ -62,7 +62,7 @@ Browser Test Results:
 
 * Win7 IE11: Name: "Hello, My name is Zambino the weird. (QED) and don't you forget it. Where in the world are my marbles?" Description: ""
 * Win7 Firefox: Name: "Hello, My name is Eli the weird. (QED)" Description: ""
-* Win7 Chrome: Name: "My name isGaraventathe weird. (QED)Whereare my marbles?" Description: ""
+* (MATCHES) Win7 Chrome: Name: "My name is Garaventa the weird. (QED) Where are my marbles?" Description: ""
 * iOS Safari: Name: "My name is Zambino the weird. (QED) Where are my marbles?" Description: ""
 
 Standard form field that uses aria-label to set the Name and aria-describedby to set the Description.
@@ -76,7 +76,7 @@ Browser Test Results:
 
 * Win7 IE11: Name: "Important stuff" Description: ""
 * Win7 Firefox: Name: "Important stuff" Description: "Hello, My name is Eli the weird. ( QED )"
-* Win7 Chrome: Name: "Important stuff" Description: " Hello, My name is Bryan Zambino the weird. (QED) and don't you forget it. Where in the world are my marbles?"
+* (MATCHES) Win7 Chrome: Name: "Important stuff" Description: "My name is Garaventa the weird. (QED) Where are my marbles?"
 * iOS Safari: Name: "Important stuff" Description: "My name is Eli the weird. (QED) Where in are my marbles?"
 
 Standard form field that uses aria-labelledby to set the Name and aria-describedby to set the Description including hidden sections that surround the referenced elements.
@@ -90,7 +90,7 @@ Browser Test Results:
 
 * Win7 IE11: Name: "Important stuff" Description: ""
 * Win7 Firefox: Name: "Important stuff" Description: "Hello, My name is Zambino the weird. (QED) and don't you forget it. Where in the world are my marbles?"
-* Win7 Chrome: Name: "Important stuff" Description: " Hello, My name is Bryan Zambino the weird. (QED) and don't you forget it. Where in the world are my marbles?"
+* Win7 Chrome: Name: "" Description: "My name is Garaventa the weird. (QED) Where are my marbles?"
 * iOS Safari: Name: "Important stuff" Description: "Hello, My name is Zambino the weird. (QED) and don't you forget it. Where in the world are my marbles?"
 
 Conclusion
@@ -100,6 +100,6 @@ Whenever external containers are referenced via aria-labelledby or aria-describe
 
 Additionally, screen readers such as JAWS and NVDA don't come anywhere near conveying the same algorithm, often varying widely across differing browsers despite what is conveyed within the Accessibility Tree.
 
-In the interest of ensuring future interoperability for web technologies across all devices, it would be beneficial for all browsers to equally support the same Alternative Text Computation algorithm, and have the same algorithm supported in ATs like screen readers as well, for all of the previously mentioned interactive elements and ARIA roles.
+In the interest of ensuring future interoperability for web technologies across all devices, it would be beneficial for all browsers to equally support the same Alternative Text Computation algorithm, and have the same algorithm supported in ATs like screen readers as well, for all of the previously mentioned interactive elements and ARIA roles. If assistive technologies utilize the accessibility tree to convey this information, then these browser improvements will automatically increase accessibility within these assistive technologies.
 
 Otherwise, it will be impossible to create complex dynamic constructs that are consistently and reliably labelled for Assistive Technology users in the future.
