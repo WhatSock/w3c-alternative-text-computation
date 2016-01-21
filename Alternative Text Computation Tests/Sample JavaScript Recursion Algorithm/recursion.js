@@ -1,5 +1,5 @@
 /*!
-[Excerpted from Visual ARIA Bookmarklet (11/28/2015)]
+[Excerpted from Visual ARIA Bookmarklet (01/21/2016)]
 ( https://raw.githubusercontent.com/accdc/aria-matrices/master/The%20ARIA%20Role%20Conformance%20Matrices/visual-aria/roles.js )
 */
 
@@ -99,16 +99,19 @@ var calcNames = function(node){
 						skip = true;
 				}
 
-				if (!trim(name)
-					&& !rolePresentation && (o.nodeName.toLowerCase() == 'input' || o.nodeName.toLowerCase() == 'select') && o.id
-						&& document.querySelectorAll('label[for="' + o.id + '"]').length){
+				if (!trim(name) && !rolePresentation && (o.nodeName.toLowerCase() == 'input' || o.nodeName.toLowerCase() == 'select'
+					|| o.nodeName.toLowerCase() == 'textarea')
+					&& o.id && document.querySelectorAll('label[for="' + o.id + '"]').length){
 					var rO = document.querySelectorAll('label[for="' + o.id + '"]')[0];
 					name = ' ' + trim(walk(rO, true, rO)) + ' ';
 				}
 
-				if (!trim(name)
-					&& !rolePresentation && (o.nodeName.toLowerCase() == 'img') && (trim(o.getAttribute('alt')) || nTitle)){
-					name = ' ' + trim(o.getAttribute('alt') || nTitle) + ' ';
+				if (!trim(name) && !rolePresentation && (o.nodeName.toLowerCase() == 'img') && (trim(o.getAttribute('alt')))){
+					name = ' ' + trim(o.getAttribute('alt')) + ' ';
+				}
+
+				if (!trim(name) && !rolePresentation && nTitle){
+					name = ' ' + trim(nTitle) + ' ';
 				}
 			}
 
@@ -148,6 +151,9 @@ var calcNames = function(node){
 
 	accName = trim(accName.replace(/\s/g, ' ').replace(/\s\s+/g, ' '));
 	accDesc = trim(accDesc.replace(/\s/g, ' ').replace(/\s\s+/g, ' '));
+
+	if (accName == accDesc)
+		accDesc = '';
 
 	return 'accName: "' + accName + '"\naccDescription: "' + accDesc + '"';
 };
