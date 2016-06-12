@@ -1,5 +1,5 @@
 /*!
-[Excerpted from Visual ARIA Bookmarklet (01/21/2016)]
+[Excerpted from Visual ARIA Bookmarklet (06/11/2016)]
 ( https://raw.githubusercontent.com/accdc/aria-matrices/master/The%20ARIA%20Role%20Conformance%20Matrices/visual-aria/roles.js )
 */
 
@@ -131,7 +131,11 @@ var calcNames = function(node){
 	skip = false;
 
 	if (title && !rPresentation){
-		desc = trim(title);
+		if (!trim(accName))
+			accName = trim(title);
+
+		else
+			desc = trim(title);
 	}
 
 	if (aDescribedby && !rPresentation){
