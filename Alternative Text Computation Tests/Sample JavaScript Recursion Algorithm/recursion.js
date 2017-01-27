@@ -1,5 +1,5 @@
 /*!
-[Excerpted from Visual ARIA Bookmarklet (06/11/2016)]
+[Excerpted from Visual ARIA Bookmarklet (01/26/2017)]
 ( https://raw.githubusercontent.com/accdc/aria-matrices/master/The%20ARIA%20Role%20Conformance%20Matrices/visual-aria/roles.js )
 */
 
@@ -33,6 +33,36 @@ var calcNames = function(node){
 				|| (o.style && (o.style['display'] == 'none' || o.style['visibility'] == 'hidden'))))
 			return true;
 		return false;
+	}, inArray = function(search, stack){
+		for (var i = 0; i < stack.length; i++){
+			if (stack[i] === search){
+				return i;
+			}
+		}
+
+		return -1;
+	}, getCSSText = function(o, refObj){
+		if (o.nodeType !== 1 || o == refObj)
+			return false;
+		var css =
+						{
+						before: '',
+						after: ''
+						};
+
+		if ((document.defaultView && document.defaultView.getComputedStyle
+			&& (document.defaultView.getComputedStyle(o, ':before').getPropertyValue('content')
+				|| document.defaultView.getComputedStyle(o, ':after').getPropertyValue('content')))){
+			css.before = trim(document.defaultView.getComputedStyle(o, ':before').getPropertyValue('content'));
+			css.after = trim(document.defaultView.getComputedStyle(o, ':after').getPropertyValue('content'));
+
+			if (css.before == 'none')
+				css.before = '';
+
+			if (css.after == 'none')
+				css.after = '';
+		}
+		return css;
 	}, hasParentLabel = function(start, targ, noLabel, refObj){
 		if (!start || !targ || start == targ)
 			return false;
@@ -62,13 +92,23 @@ var calcNames = function(node){
 	rPresentation = (rPresentation != 'presentation' && rPresentation != 'none') ? false : true;
 
 	var walk = function(obj, stop, refObj){
-		var nm = '';
+		var nm = '', nds = [], cssOP = {};
+
+		if (inArray(obj, nds) === -1){
+			nds.push(obj);
+			cssOP = getCSSText(obj, null);
+		}
 
 		walkDOM(obj, function(o, refObj){
 			if (skip || !o || (o.nodeType === 1 && isHidden(o, refObj)))
 				return;
 
-			var name = '';
+			var name = '', cssO = {};
+
+			if (inArray(o.parentNode, nds) === -1){
+				nds.push(o.parentNode);
+				cssO = getCSSText(o.parentNode, refObj);
+			}
 
 			if (o.nodeType === 1){
 				var aLabelledby = o.getAttribute('aria-labelledby') || '', aLabel = o.getAttribute('aria-label') || '',
@@ -119,10 +159,24 @@ var calcNames = function(node){
 				name = o.data;
 			}
 
-			if (name && !hasParentLabel(o, refObj, false, refObj)){
+			if (cssO.before)
+				name = cssO.before + ' ' + name;
+
+			if (cssO.after)
+				name += ' ' + cssO.after;
+			name = ' ' + trim(name) + ' ';
+
+			if (trim(name) && !hasParentLabel(o, refObj, false, refObj)){
 				nm += name;
 			}
 		}, refObj);
+
+		if (cssOP.before)
+			nm = cssOP.before + ' ' + nm;
+
+		if (cssOP.after)
+			nm += ' ' + cssOP.after;
+		nm = trim(nm);
 
 		return nm;
 	};
