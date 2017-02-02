@@ -1,5 +1,5 @@
 /*!
-[Excerpted from Visual ARIA Bookmarklet (01/26/2017)]
+[Excerpted from Visual ARIA Bookmarklet (02/01/2017)]
 ( https://raw.githubusercontent.com/accdc/aria-matrices/master/The%20ARIA%20Role%20Conformance%20Matrices/visual-aria/roles.js )
 */
 
@@ -42,7 +42,8 @@ var calcNames = function(node){
 
 		return -1;
 	}, getCSSText = function(o, refObj){
-		if (o.nodeType !== 1 || o == refObj)
+		if (o.nodeType !== 1 || o == refObj
+			|| ' input select textarea img iframe '.indexOf(' ' + o.nodeName.toLowerCase() + ' ') !== -1)
 			return false;
 		var css =
 						{
@@ -91,11 +92,14 @@ var calcNames = function(node){
 		title = node.getAttribute('title') || '', skip = false, rPresentation = node.getAttribute('role');
 	rPresentation = (rPresentation != 'presentation' && rPresentation != 'none') ? false : true;
 
-	var walk = function(obj, stop, refObj){
-		var nm = '', nds = [], cssOP = {};
+	var walk = function(obj, stop, refObj, isIdRef){
+		var nm = '', nds = [], cssOP = {}, idRefNode = null;
 
 		if (inArray(obj, nds) === -1){
 			nds.push(obj);
+
+			if (isIdRef)
+				idRefNode = obj;
 			cssOP = getCSSText(obj, null);
 		}
 
@@ -105,9 +109,9 @@ var calcNames = function(node){
 
 			var name = '', cssO = {};
 
-			if (inArray(o.parentNode, nds) === -1){
-				nds.push(o.parentNode);
-				cssO = getCSSText(o.parentNode, refObj);
+			if (inArray(idRefNode && idRefNode == o ? o : o.parentNode, nds) === -1){
+				nds.push(idRefNode && idRefNode == o ? o : o.parentNode);
+				cssO = getCSSText(idRefNode && idRefNode == o ? o : o.parentNode, refObj);
 			}
 
 			if (o.nodeType === 1){
@@ -124,7 +128,7 @@ var calcNames = function(node){
 
 						for (var i = 0; i < a.length; i++){
 							var rO = document.getElementById(a[i]);
-							name += ' ' + walk(rO, true, rO) + ' ';
+							name += ' ' + walk(rO, true, rO, true) + ' ';
 						}
 					}
 
@@ -139,11 +143,11 @@ var calcNames = function(node){
 						skip = true;
 				}
 
-				if (!trim(name) && !rolePresentation && (o.nodeName.toLowerCase() == 'input' || o.nodeName.toLowerCase() == 'select'
-					|| o.nodeName.toLowerCase() == 'textarea')
-					&& o.id && document.querySelectorAll('label[for="' + o.id + '"]').length){
+				if (!trim(name)
+					&& !rolePresentation && ' input select textarea '.indexOf(' ' + o.nodeName.toLowerCase() + ' ') !== -1 && o.id
+						&& document.querySelectorAll('label[for="' + o.id + '"]').length){
 					var rO = document.querySelectorAll('label[for="' + o.id + '"]')[0];
-					name = ' ' + trim(walk(rO, true, rO)) + ' ';
+					name = ' ' + trim(walk(rO, true, rO, true)) + ' ';
 				}
 
 				if (!trim(name) && !rolePresentation && (o.nodeName.toLowerCase() == 'img') && (trim(o.getAttribute('alt')))){
@@ -197,7 +201,7 @@ var calcNames = function(node){
 
 		for (var j = 0; j < d.length; j++){
 			var rO = document.getElementById(d[j]);
-			s += ' ' + walk(rO, true, rO) + ' ';
+			s += ' ' + walk(rO, true, rO, true) + ' ';
 		}
 
 		if (trim(s))
