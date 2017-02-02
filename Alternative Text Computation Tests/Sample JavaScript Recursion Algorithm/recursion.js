@@ -98,8 +98,10 @@ var calcNames = function(node){
 		if (inArray(obj, nds) === -1){
 			nds.push(obj);
 
-			if (isIdRef)
+			if (isIdRef || obj == refObj){
 				idRefNode = obj;
+			}
+
 			cssOP = getCSSText(obj, null);
 		}
 
