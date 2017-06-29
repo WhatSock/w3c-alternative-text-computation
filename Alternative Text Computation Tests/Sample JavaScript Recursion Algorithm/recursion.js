@@ -1,5 +1,5 @@
 /*!
-[Excerpted from Visual ARIA Bookmarklet (06/28/2017)]
+[Excerpted from Visual ARIA Bookmarklet (06/29/2017)]
 ( https://raw.githubusercontent.com/accdc/aria-matrices/master/The%20ARIA%20Role%20Conformance%20Matrices/visual-aria/roles.js )
 */
 
@@ -61,7 +61,7 @@ var calcNames = function(node){
 // As an override of list2, conditionally include name from content if current node is focusable, or if the current node matches list3 while the referenced parent node matches list1.
 		lst3 =
 						{
-						roles: ',term,definition,directory,list,group,note,status,table,rowgroup,row,contentinfo,',
+						roles: ',combobox,term,definition,directory,list,group,note,status,table,rowgroup,row,contentinfo,',
 						names: ',dl,ul,ol,dd,details,output,table,thead,tbody,tfoot,tr,'
 						};
 
