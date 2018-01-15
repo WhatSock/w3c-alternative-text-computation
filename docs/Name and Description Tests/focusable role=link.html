@@ -17,10 +17,7 @@ display: none;
 <div class="pageContainer">
 
 <div id="fieldDiv">
-<input id="focusableElId" type="text" aria-label="Important stuff" aria-describedby="descId" />
-
-<div>
-<div id="descId" >
+<div id="lblId" role="link" tabindex="0">
 <!-- Comment text -->
 <span aria-hidden="true"><i> Hello, </i></span>
 <span>My</span> name is
@@ -51,7 +48,6 @@ are my marbles?
 </tr></table>
 </div>
 </div>
-</div>
 
 </div>
 <br /><br /><br />
@@ -59,7 +55,7 @@ are my marbles?
 <button onclick="(function(){var a=document.createElement('script');a.type='text/javascript';a.src='https://gutterstar.bizland.com/whatsock/training/matrices/visual-aria/roles.js';document.head.appendChild(a)})()">
 Load Visual ARIA
 </button>
-<button onclick="document.getElementById('calcTextStr').innerHTML = calcNames(document.getElementById('focusableElId'));">
+<button onclick="document.getElementById('calcTextStr').innerHTML = getNames(document.getElementById('lblId'));">
 Calculate Accessible Name and Description
 </button>
 <br />

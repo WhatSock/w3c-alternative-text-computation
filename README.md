@@ -1,22 +1,11 @@
 # w3c-alternative-text-computation
 A study of browser and Assistive Technology support for the W3C Alternative Text Computation.
 
-Updated: 12/16/2015
-
 To ensure interoperability, the W3C Alternative Text Computation should be supported in all browsers equally. So I built 5 tests to see how well this is implemented; by using the same convoluted markup structure for each that combines many various aspects of labelling, including programmatically hidden content and nested markup structures. If equally supported, all browsers would reflect the same strings as shown below for the Name and Description calculation.
 
 Visual ARIA is included within each test page to validate a shared Name and Description according to the Alternative Text Computation, as documented at
 http://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te
 (Which is exposed when mousing over the ARIA Link or form edit field on the test pages after loading Visual ARIA)
-
-This Name and Description algorithm is specifically geared for the following active element types and ARIA roles:
-
-* All HTML input, select, and button elements. 
-* All HTML A elements that include an 'href' attribute.  
-* All of the ARIA roles: "button", "checkbox", "link", "searchbox", "scrollbar", "slider", "spinbutton", "switch", "textbox", "combobox", "option", "menuitem", "menuitemcheckbox", "menuitemradio", "radio", "tab", "treeitem"
-
-A summary of this calculation is documented at
-http://whatsock.com/training/matrices/visual-aria.htm#alternative-text-calculation
 
 Currently, accurate recursion within browsers is inconsistently and unreliably supported, and no Assistive Technologies match any of these naming algorithms.
 
@@ -26,7 +15,7 @@ http://whatsock.com/training/#hd2
 Standard use of role="link" with nested content structures.
 -----
 
-http://whatsock.com/test/Alternative%20Text%20Calculation/focusable%20role=link.html
+https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/focusable%20role=link.html
 
 The Accessibility Tree should match: Name: "My name is Garaventa the weird. (QED) Where are my marbles?" Description: ""
 
@@ -40,7 +29,7 @@ Browser Test Results:
 Standard form field with aria-labelledby to recursively process embedded markup.
 -----
 
-http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20aria-labelledby.html
+https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20aria-labelledby.html
 
 The Accessibility Tree should match: Name: "My name is Garaventa the weird. (QED) Where are my marbles?" Description: ""
 
@@ -54,7 +43,7 @@ Browser Test Results:
 Standard form field that uses an HTML label element with matching 'for' and 'id' attributes.
 -----
 
-http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20label%20element.html
+https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20label%20element.html
 
 The Accessibility Tree should match: Name: "My name is Garaventa the weird. (QED) Where are my marbles?" Description: ""
 
@@ -68,7 +57,7 @@ Browser Test Results:
 Standard form field that uses aria-label to set the Name and aria-describedby to set the Description.
 -----
 
-http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20aria-describedby.html
+https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20aria-describedby.html
 
 The Accessibility Tree should match: Name: "Important stuff" Description: "My name is Garaventa the weird. (QED) Where are my marbles?"
 
@@ -82,7 +71,7 @@ Browser Test Results:
 Standard form field that uses aria-labelledby to set the Name and aria-describedby to set the Description including hidden sections that surround the referenced elements.
 -----
 
-http://whatsock.com/test/Alternative%20Text%20Calculation/form%20field%20with%20aria-describedby%20+%20hidden.html
+https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20aria-describedby%20+%20hidden.html
 
 The Accessibility Tree should match: Name: "Important stuff" Description: "My name is Garaventa the weird. (QED) Where are my marbles?"
 

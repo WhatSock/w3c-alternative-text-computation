@@ -1,9 +1,12 @@
 /*!
-[Excerpted from Visual ARIA Bookmarklet (06/29/2017)]
-( https://raw.githubusercontent.com/accdc/aria-matrices/master/The%20ARIA%20Role%20Conformance%20Matrices/visual-aria/roles.js )
+calcNames 1.1 (01/15/2018), compute the Name and Description property values for a DOM node
+Returns an object with 'name' and 'desc' properties.
+[Excerpted from Visual ARIA ( https://raw.githubusercontent.com/accdc/visual-aria/master/docs/visual-aria/roles.js )
+Copyright 2018 Bryan Garaventa (http://whatsock.com/training/matrices/visual-aria.htm)
+Part of the ARIA Role Conformance Matrices, distributed under the terms of the Open Source Initiative OSI - MIT License
 */
 
-var calcNames = function(node){
+var calcNames = function(node, fnc, preventSelfCSSRef){
 	if (!node || node.nodeType !== 1)
 		return;
 
@@ -66,13 +69,18 @@ var calcNames = function(node){
 						};
 
 		// Prevent calculating name from content if the current node matches list2
-		if (lst2.roles.indexOf(',' + node.role + ',') >= 0 || lst2.names.indexOf(',' + node.name + ',') >= 0){
+		if (lst2.roles.indexOf(',' + node.role + ',') >= 0 || (!node.role && lst2.names.indexOf(',' + node.name + ',') >= 0)){
 
 			// Override condition so name from content is sometimes included when the current node matches list3
-			if ((lst3.roles.indexOf(',' + node.role + ',') >= 0 || lst3.names.indexOf(',' + node.name + ',') >= 0) &&
-// Include name from content if the referenced node is the same as the current node, or if the current node is focusable, or if the referencing parent node matches those within list1
-			(refObj == o || node.focusable
-				|| (lst1.roles.indexOf(',' + pNode.role + ',') >= 0 || lst1.names.indexOf(',' + pNode.name + ',') >= 0))){
+			if ((lst3.roles.indexOf(',' + node.role + ',') >= 0
+				|| (!node.role && lst3.names.indexOf(',' + node.name + ',') >= 0)) &&
+			// Then include name from content
+			// if the referenced node is the same as the current node and if the current node is focusable,
+			((refObj == o && node.focusable) ||
+// or if the referenced node is not the same as the current node and if the referencing parent node matches those within list1.
+			(refObj != o && (lst1.roles.indexOf(',' + pNode.role + ',') >= 0
+				|| (!pNode.role && lst1.names.indexOf(',' + pNode.name + ',') >= 0))))){
+				// Override condition detected, so get name from content.
 				return false;
 			}
 
@@ -160,8 +168,9 @@ var calcNames = function(node){
 				idRefNode = obj;
 			}
 
-			// Disabled in Visual ARIA to prevent self referencing by Visual ARIA tooltips
-			cssOP = getCSSText(obj, null);
+			// Enabled in Visual ARIA to prevent self referencing by Visual ARIA tooltips
+			if (!preventSelfCSSRef)
+				cssOP = getCSSText(obj, null);
 		}
 
 		walkDOM(obj, function(o, refObj){
@@ -278,5 +287,26 @@ var calcNames = function(node){
 	if (accName == accDesc)
 		accDesc = '';
 
-	return 'accName: "' + accName + '"\naccDescription: "' + accDesc + '"';
+	var props =
+					{
+					name: accName,
+					desc: accDesc
+					};
+
+	if (fnc && typeof fnc == 'function')
+		return fnc.apply(node,
+						[
+						node,
+						props
+						]);
+
+	else
+		return props;
+};
+
+// Customize returned string
+
+var getNames = function(node){
+	var props = calcNames(node);
+	return 'accName: "' + props.name + '"\n\naccDesc: "' + props.desc + '"';
 };
