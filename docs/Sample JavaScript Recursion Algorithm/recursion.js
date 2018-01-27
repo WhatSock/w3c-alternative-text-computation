@@ -203,7 +203,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 				if (!node.firstChild || (node == refNode && (aLabelledby || aLabel)) || (node.firstChild && node != refNode && aLabel)) {
 					if (!stop && node === refNode && aLabelledby) {
 						if (!rolePresentation) {
-							var ids = aLabelledby.split(' ');
+							var ids = aLabelledby.split(/\s+/);
 							var parts = [];
 
 							for (var i = 0; i < ids.length; i++) {
@@ -276,7 +276,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 		var describedby = node.getAttribute('aria-describedby') || '';
 		if (describedby) {
-			var ids = aDescribedby.split(' ');
+			var ids = describedby.split(/\s+/);
 			var parts = [];
 
 			for (var j = 0; j < ids.length; j++) {
