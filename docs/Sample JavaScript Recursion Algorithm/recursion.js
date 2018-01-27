@@ -124,7 +124,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			if (!text || text === 'none') {
 				return '';
 			} else {
-				return trim(text);
+				return text;
 			}
 		};
 
@@ -147,7 +147,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 			if (node.getAttribute) {
 				if (['presentation', 'none'].indexOf(node.getAttribute('role')) === -1) {
-					if (!noLabel && trim(node.getAttribute('aria-label'))) {
+					if (!noLabel && node.getAttribute('aria-label')) {
 						return true;
 					}
 					if (isHidden(node, refNode)) {
@@ -204,12 +204,13 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 					if (!stop && node === refNode && aLabelledby) {
 						if (!rolePresentation) {
 							var ids = aLabelledby.split(' ');
+							var parts = [];
 
 							for (var i = 0; i < ids.length; i++) {
 								var element = document.getElementById(ids[i]);
-								name += ' ' + walk(element, true, skip);
+								parts.push(walk(element, true, skip));
 							}
-							name = trim(name);
+							name = parts.join(' ');
 						}
 
 						if (name || rolePresentation) {
@@ -218,7 +219,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 					}
 
 					if (!name && !rolePresentation && aLabel) {
-						name = trim(aLabel);
+						name = aLabel;
 
 						if (name && node === refNode) {
 							skip = true;
@@ -227,45 +228,44 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 					if (!name && !rolePresentation && ['input', 'select', 'textarea'].indexOf(node.nodeName.toLowerCase()) !== -1 && node.id && document.querySelectorAll('label[for="' + node.id + '"]').length) {
 						var label = document.querySelector('label[for="' + node.id + '"]');
-						name = trim(walk(label, true, skip));
+						name = walk(label, true, skip);
 					}
 
-					if (!name && !rolePresentation && node.nodeName.toLowerCase() == 'img' && trim(node.getAttribute('alt'))) {
-						name = trim(node.getAttribute('alt'));
+					if (!name && !rolePresentation && node.nodeName.toLowerCase() == 'img' && node.getAttribute('alt')) {
+						name = node.getAttribute('alt');
 					}
 
 					if (!name && !rolePresentation && nTitle) {
-						name = trim(nTitle);
+						name = nTitle;
 					}
 				}
 			} else if (node.nodeType === 3) {
 				name = node.data;
 			}
 
-			name = cssO.before + ' ' + name + ' ' + cssO.after;
-			name = trim(name);
+			name = cssO.before + name + cssO.after;
 
 			if (name && !hasParentLabel(node, false, refNode)) {
-				fullName += ' ' + name;
+				fullName += name;
 			}
 		}, refNode);
 
-		fullName = cssOP.before + ' ' + fullName + ' ' + cssOP.after;
+		fullName = cssOP.before + fullName + cssOP.after;
 
-		return trim(fullName);
+		return fullName;
 	};
 
 	if (isHidden(node, document.body) || hasParentLabel(node, true, document.body)) {
 		return;
 	}
 
-	var accName = trim(walk(node, false));
+	var accName = walk(node, false);
 	var accDesc = '';
 
 	if (['presentation', 'none'].indexOf(node.getAttribute('role')) === -1) {
 		var desc = '';
 
-		var title = trim(node.getAttribute('title')) || '';
+		var title = node.getAttribute('title') || '';
 		if (title) {
 			if (!accName) {
 				accName = title;
@@ -276,17 +276,16 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 		var describedby = node.getAttribute('aria-describedby') || '';
 		if (describedby) {
-			var s = '';
 			var ids = aDescribedby.split(' ');
+			var parts = [];
 
 			for (var j = 0; j < ids.length; j++) {
 				var element = document.getElementById(ids[j]);
-				s += ' ' + walk(element, true) + ' ';
+				parts.push(walk(element, true));
 			}
-			s = trim(s);
 
-			if (s) {
-				accDesc = s;
+			if (parts.length) {
+				accDesc = parts.join(' ');
 			}
 		}
 	}
