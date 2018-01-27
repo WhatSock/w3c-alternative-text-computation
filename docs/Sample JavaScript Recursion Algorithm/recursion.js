@@ -160,8 +160,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return false;
 	};
 
-	var skip = false;
-	var walk = function(refNode, stop) {
+	var walk = function(refNode, stop, skip) {
 		var fullName = '';
 		var nodes = [];
 		var cssOP = {
@@ -208,7 +207,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 							for (var i = 0; i < ids.length; i++) {
 								var element = document.getElementById(ids[i]);
-								name += ' ' + walk(element, true);
+								name += ' ' + walk(element, true, skip);
 							}
 							name = trim(name);
 						}
@@ -228,7 +227,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 					if (!name && !rolePresentation && ['input', 'select', 'textarea'].indexOf(node.nodeName.toLowerCase()) !== -1 && node.id && document.querySelectorAll('label[for="' + node.id + '"]').length) {
 						var label = document.querySelector('label[for="' + node.id + '"]');
-						name = trim(walk(label, true));
+						name = trim(walk(label, true, skip));
 					}
 
 					if (!name && !rolePresentation && node.nodeName.toLowerCase() == 'img' && trim(node.getAttribute('alt'))) {
@@ -262,7 +261,6 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 	var accName = trim(walk(node, false));
 	var accDesc = '';
-	skip = false;
 
 	if (['presentation', 'none'].indexOf(node.getAttribute('role')) === -1) {
 		var desc = '';
