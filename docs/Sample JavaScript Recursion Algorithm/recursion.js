@@ -114,16 +114,6 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return false;
 	};
 
-	var inArray = function(search, stack) {
-		for (var i = 0; i < stack.length; i++) {
-			if (stack[i] === search) {
-				return i;
-			}
-		}
-
-		return -1;
-	};
-
 	var getCSSText = function(o, refNode) {
 		if (o.nodeType !== 1 || o == refNode
 			|| ['input', 'select', 'textarea', 'img', 'iframe'].indexOf(o.nodeName.toLowerCase()) !== -1)
@@ -188,7 +178,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 	var walk = function(obj, stop, refNode, isIdRef) {
 		var nm = '', nds = [], cssOP = {}, idRefNode = null;
 
-		if (inArray(obj, nds) === -1) {
+		if (nds.indexOf(obj) === -1) {
 			nds.push(obj);
 
 			if (isIdRef || obj == refNode) {
@@ -208,7 +198,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 			var name = '', cssO = {};
 
-			if (inArray(idRefNode && idRefNode == o ? o : o.parentNode, nds) === -1) {
+			if (nds.indexOf(idRefNode && idRefNode == o ? o : o.parentNode) === -1) {
 				nds.push(idRefNode && idRefNode == o ? o : o.parentNode);
 				cssO = getCSSText(idRefNode && idRefNode == o ? o : o.parentNode, refNode);
 			}
