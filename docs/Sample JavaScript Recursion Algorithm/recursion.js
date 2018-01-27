@@ -50,77 +50,46 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return false;
 	};
 
-	var isException = function(o, refNode) {
-		if (!refNode || !o || refNode.nodeType !== 1 || o.nodeType !== 1) {
+	var isException = function(node, refNode) {
+		if (!refNode || !node || refNode.nodeType !== 1 || node.nodeType !== 1) {
 			return false;
 		}
-		var pNode = {
-			role: refNode.getAttribute('role'),
-			name: refNode.nodeName.toLowerCase()
-		};
-		var node = {
-			role: o.getAttribute('role'),
-			name: o.nodeName.toLowerCase()
-		};
 
-		// Always include name from content when the referenced node matches list1, as well as when child nodes match those within list3
 		var list1 = {
 			roles: ['link', 'button', 'checkbox', 'option', 'radio', 'switch', 'tab', 'treeitem', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'cell', 'columnheader', 'rowheader', 'tooltip', 'heading'],
 			names: ['a', 'button', 'summary', 'input', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'menuitem', 'option', 'td', 'th']
 		};
 
-		// Never include name from content when current node matches list2
 		var list2 = {
-			roles: ['application', 'alert', 'log', 'marquee', 'status', 'timer', 'alertdialog', 'dialog', 'banner', 'complementary', 'contentinfo', 'form', 'main', 'navigation', 'region', 'search', 'term', 'definition', 'article', 'directory', 'list', 'document', 'feed', 'figure', 'group', 'img', 'math', 'note', 'table', 'toolbar', 'menu', 'menubar', 'combobox', 'grid', 'listbox', 'radiogroup', 'textbox', 'searchbox', 'spinbutton', 'scrollbar', 'slider', 'tablist', 'tabpanel', 'tree', 'treegrid', 'separator', 'rowgroup', 'row'],
-			names: ['article', 'aside', 'body', 'select', 'datalist', 'dd', 'details', 'optgroup', 'dialog', 'dl', 'ul', 'ol', 'figure', 'footer', 'form', 'header', 'hr', 'img', 'textarea', 'input', 'main', 'math', 'menu', 'nav', 'output', 'section', 'table', 'thead', 'tbody', 'tfoot', 'tr']
+			roles: ['application', 'alert', 'log', 'marquee', 'timer', 'alertdialog', 'dialog', 'banner', 'complementary', 'form', 'main', 'navigation', 'region', 'search', 'article', 'document', 'feed', 'figure', 'img', 'math', 'toolbar', 'menu', 'menubar', 'grid', 'listbox', 'radiogroup', 'textbox', 'searchbox', 'spinbutton', 'scrollbar', 'slider', 'tablist', 'tabpanel', 'tree', 'treegrid', 'separator',
+			names: ['article', 'aside', 'body', 'select', 'datalist', 'optgroup', 'dialog', 'figure', 'footer', 'form', 'header', 'hr', 'img', 'textarea', 'input', 'main', 'math', 'menu', 'nav', 'section']
 		};
 
-		// As an override of list2, conditionally include name from content if current node is focusable, or if the current node matches list3 while the referenced parent node matches list1.
 		var list3 = {
 			roles: ['combobox', 'term', 'definition', 'directory', 'list', 'group', 'note', 'status', 'table', 'rowgroup', 'row', 'contentinfo'],
 			names: ['dl', 'ul', 'ol', 'dd', 'details', 'output', 'table', 'thead', 'tbody', 'tfoot', 'tr']
 		};
 
-		// Prevent calculating name from content if the current node matches list2
-		if (list2.roles.indexOf(node.role) >= 0 || (!node.role && list2.names.indexOf(node.name) >= 0)) {
+		var inList = function(node, list) {
+			var role = node.getAttribute('role');
+			var name = node.nodeName.toLowerCase();
+			return (
+				list.roles.indexOf(role) >= 0 ||
+				(!role && list2.names.indexOf(name) >= 0)
+			);
+		};
 
-			// Override condition so name from content is sometimes included when the current node matches list3
-			if (
-				(
-					list3.roles.indexOf(node.role) >= 0 ||
-					(
-						!node.role &&
-						list3.names.indexOf(node.name) >= 0
-					)
-				) &&
-				// Then include name from content
-				// if the referenced node is the same as the current node and if the current node is focusable,
-				(
-					(
-						refNode == o &&
-						isFocusable(o)
-					) ||
-					// or if the referenced node is not the same as the current node and if the referencing parent node matches those within list1.
-					(
-						refNode != o &&
-						(
-							list1.roles.indexOf(pNode.role) >= 0 ||
-							(
-								!pNode.role &&
-								list1.names.indexOf(pNode.name) >= 0
-							)
-						)
-					)
-				)
-			) {
-				// Override condition detected, so get name from content.
-				return false;
-			}
-
+		if (inList(node, list2)) {
 			return true;
+		} else if (inList(node, list3)) {
+			if (node === refNode) {
+				return !isFocusable(node);
+			} else {
+				return !inList(refNode, list1);
+			}
+		} else {
+			return false;
 		}
-
-		return false;
 	};
 
 	var isHidden = function(o, refNode) {
