@@ -92,17 +92,25 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		}
 	};
 
-	var isHidden = function(o, refNode) {
-		if (o.nodeType !== 1 || o == refNode) {
+	var isHidden = function(node, refNode) {
+		if (node.nodeType !== 1 || node == refNode) {
 			return false;
 		}
 
-		if (o != refNode && ((o.getAttribute && o.getAttribute('aria-hidden') == 'true')
-			|| (o.currentStyle && (o.currentStyle['display'] == 'none' || o.currentStyle['visibility'] == 'hidden'))
-				|| (document.defaultView && document.defaultView.getComputedStyle && (document.defaultView.getComputedStyle(o,
-					'')['display'] == 'none' || document.defaultView.getComputedStyle(o, '')['visibility'] == 'hidden'))
-				|| (o.style && (o.style['display'] == 'none' || o.style['visibility'] == 'hidden'))))
+		if (node.getAttribute('aria-hidden') === 'true') {
 			return true;
+		}
+
+		var style = {};
+		if (document.defaultView && document.defaultView.getComputedStyle) {
+			style = document.defaultView.getComputedStyle(node, '');
+		} else if (node.currentStyle) {
+			style = node.currentStyle;
+		}
+		if (style['display'] === 'none' || style['visibility'] === 'hidden') {
+			return true;
+		}
+
 		return false;
 	};
 
