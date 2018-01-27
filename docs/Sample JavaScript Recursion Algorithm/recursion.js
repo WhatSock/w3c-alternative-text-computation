@@ -35,6 +35,21 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		}
 	};
 
+	var isFocusable = function(node) {
+		var nodeName = node.nodeName.toLowerCase();
+
+		if (node.getAttribute('tabindex')) {
+			return true;
+		}
+		if (nodeName === 'a' && node.getAttribute('href')) {
+			return true;
+		}
+		if (['input', 'select', 'button'].indexOf(nodeName) !== -1 && node.getAttribute('type') !== 'hidden') {
+			return true;
+		}
+		return false;
+	};
+
 	var isException = function(o, refNode) {
 		if (!refNode || !o || refNode.nodeType !== 1 || o.nodeType !== 1) {
 			return false;
@@ -47,9 +62,6 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			role: o.getAttribute('role'),
 			name: o.nodeName.toLowerCase()
 		};
-
-		node.focusable = (o.getAttribute('tabindex') || (node.name == 'a' && o.getAttribute('href'))
-			|| (['input', 'select', 'button'].indexOf(node.name) !== -1 && o.getAttribute('type') != 'hidden')) ? true : false;
 
 		// Always include name from content when the referenced node matches list1, as well as when child nodes match those within list3
 		var list1 = {
@@ -86,7 +98,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 				(
 					(
 						refNode == o &&
-						node.focusable
+						isFocusable(o)
 					) ||
 					// or if the referenced node is not the same as the current node and if the referencing parent node matches those within list1.
 					(
