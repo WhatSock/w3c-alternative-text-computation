@@ -49,36 +49,36 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		};
 
 		node.focusable = (o.getAttribute('tabindex') || (node.name == 'a' && o.getAttribute('href'))
-			|| ('input,select,button'.indexOf(node.name) !== -1 && o.getAttribute('type') != 'hidden')) ? true : false;
+			|| (['input', 'select', 'button'].indexOf(node.name) !== -1 && o.getAttribute('type') != 'hidden')) ? true : false;
 
 		// Always include name from content when the referenced node matches list1, as well as when child nodes match those within list3
-		var lst1 = {
-			roles: ',link,button,checkbox,option,radio,switch,tab,treeitem,menuitem,menuitemcheckbox,menuitemradio,cell,columnheader,rowheader,tooltip,heading,',
-			names: ',a,button,summary,input,h1,h2,h3,h4,h5,h6,menuitem,option,td,th,'
+		var list1 = {
+			roles: ['link', 'button', 'checkbox', 'option', 'radio', 'switch', 'tab', 'treeitem', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'cell', 'columnheader', 'rowheader', 'tooltip', 'heading'],
+			names: ['a', 'button', 'summary', 'input', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'menuitem', 'option', 'td', 'th']
 		};
 
 		// Never include name from content when current node matches list2
-		var lst2 = {
-			roles: ',application,alert,log,marquee,status,timer,alertdialog,dialog,banner,complementary,contentinfo,form,main,navigation,region,search,term,definition,article,directory,list,document,feed,figure,group,img,math,note,table,toolbar,menu,menubar,combobox,grid,listbox,radiogroup,textbox,searchbox,spinbutton,scrollbar,slider,tablist,tabpanel,tree,treegrid,separator,rowgroup,row,',
-			names: ',article,aside,body,select,datalist,dd,details,optgroup,dialog,dl,ul,ol,figure,footer,form,header,hr,img,textarea,input,main,math,menu,nav,output,section,table,thead,tbody,tfoot,tr,'
+		var list2 = {
+			roles: ['application', 'alert', 'log', 'marquee', 'status', 'timer', 'alertdialog', 'dialog', 'banner', 'complementary', 'contentinfo', 'form', 'main', 'navigation', 'region', 'search', 'term', 'definition', 'article', 'directory', 'list', 'document', 'feed', 'figure', 'group', 'img', 'math', 'note', 'table', 'toolbar', 'menu', 'menubar', 'combobox', 'grid', 'listbox', 'radiogroup', 'textbox', 'searchbox', 'spinbutton', 'scrollbar', 'slider', 'tablist', 'tabpanel', 'tree', 'treegrid', 'separator', 'rowgroup', 'row'],
+			names: ['article', 'aside', 'body', 'select', 'datalist', 'dd', 'details', 'optgroup', 'dialog', 'dl', 'ul', 'ol', 'figure', 'footer', 'form', 'header', 'hr', 'img', 'textarea', 'input', 'main', 'math', 'menu', 'nav', 'output', 'section', 'table', 'thead', 'tbody', 'tfoot', 'tr']
 		};
 
 		// As an override of list2, conditionally include name from content if current node is focusable, or if the current node matches list3 while the referenced parent node matches list1.
-		var lst3 = {
-			roles: ',combobox,term,definition,directory,list,group,note,status,table,rowgroup,row,contentinfo,',
-			names: ',dl,ul,ol,dd,details,output,table,thead,tbody,tfoot,tr,'
+		var list3 = {
+			roles: ['combobox', 'term', 'definition', 'directory', 'list', 'group', 'note', 'status', 'table', 'rowgroup', 'row', 'contentinfo'],
+			names: ['dl', 'ul', 'ol', 'dd', 'details', 'output', 'table', 'thead', 'tbody', 'tfoot', 'tr']
 		};
 
 		// Prevent calculating name from content if the current node matches list2
-		if (lst2.roles.indexOf(',' + node.role + ',') >= 0 || (!node.role && lst2.names.indexOf(',' + node.name + ',') >= 0)) {
+		if (list2.roles.indexOf(node.role) >= 0 || (!node.role && list2.names.indexOf(node.name) >= 0)) {
 
 			// Override condition so name from content is sometimes included when the current node matches list3
 			if (
 				(
-					lst3.roles.indexOf(',' + node.role + ',') >= 0 ||
+					list3.roles.indexOf(node.role) >= 0 ||
 					(
 						!node.role &&
-						lst3.names.indexOf(',' + node.name + ',') >= 0
+						list3.names.indexOf(node.name) >= 0
 					)
 				) &&
 				// Then include name from content
@@ -92,10 +92,10 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 					(
 						refNode != o &&
 						(
-							lst1.roles.indexOf(',' + pNode.role + ',') >= 0 ||
+							list1.roles.indexOf(pNode.role) >= 0 ||
 							(
 								!pNode.role &&
-								lst1.names.indexOf(',' + pNode.name + ',') >= 0
+								list1.names.indexOf(pNode.name) >= 0
 							)
 						)
 					)
@@ -137,7 +137,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 	var getCSSText = function(o, refNode) {
 		if (o.nodeType !== 1 || o == refNode
-			|| ' input select textarea img iframe '.indexOf(' ' + o.nodeName.toLowerCase() + ' ') !== -1)
+			|| ['input', 'select', 'textarea', 'img', 'iframe'].indexOf(o.nodeName.toLowerCase()) !== -1)
 			return false;
 		var css = {
 			before: '',
