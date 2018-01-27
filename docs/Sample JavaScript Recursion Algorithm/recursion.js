@@ -318,3 +318,10 @@ var getNames = function(node) {
 	var props = calcNames(node);
 	return 'accName: "' + props.name + '"\n\naccDesc: "' + props.desc + '"';
 };
+
+if (typeof module === 'object' && module.exports) {
+	module.exports = {
+		getNames: getNames,
+		calcNames: calcNames,
+	};
+}
