@@ -160,19 +160,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return false;
 	};
 
-	if (isHidden(node, document.body) || hasParentLabel(node, true, document.body)) {
-		return;
-	}
-
-	var accName = '';
-	var accDesc = '';
-	var desc = '';
-	var aDescribedby = node.getAttribute('aria-describedby') || '';
-	var title = node.getAttribute('title') || '';
 	var skip = false;
-	var rPresentation = node.getAttribute('role');
-	rPresentation = (rPresentation != 'presentation' && rPresentation != 'none') ? false : true;
-
 	var walk = function(obj, stop, refNode, isIdRef) {
 		var nm = '';
 		var nds = [];
@@ -279,38 +267,47 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return nm;
 	};
 
-	accName = walk(node, false, node);
+	if (isHidden(node, document.body) || hasParentLabel(node, true, document.body)) {
+		return;
+	}
+
+	var accName = trim(walk(node, false, node));
+	var accDesc = '';
 	skip = false;
 
-	if (title && !rPresentation) {
-		if (!trim(accName)) {
-			accName = trim(title);
-		} else {
-			desc = trim(title);
+	if (['presentation', 'none'].indexOf(node.getAttribute('role')) === -1) {
+		var desc = '';
+
+		var title = trim(node.getAttribute('title')) || '';
+		if (title) {
+			if (!accName) {
+				accName = title;
+			} else {
+				accDesc = title;
+			}
+		}
+
+		var describedby = node.getAttribute('aria-describedby') || '';
+		if (describedby) {
+			var s = '';
+			var ids = aDescribedby.split(' ');
+
+			for (var j = 0; j < ids.length; j++) {
+				var element = document.getElementById(ids[j]);
+				s += ' ' + walk(element, true, element, true) + ' ';
+			}
+			s = trim(s);
+
+			if (s) {
+				accDesc = s;
+			}
 		}
 	}
 
-	if (aDescribedby && !rPresentation) {
-		var s = '', d = aDescribedby.split(' ');
+	accName = trim(accName.replace(/\s+/g, ' '));
+	accDesc = trim(accDesc.replace(/\s+/g, ' '));
 
-		for (var j = 0; j < d.length; j++) {
-			var rO = document.getElementById(d[j]);
-			s += ' ' + walk(rO, true, rO, true) + ' ';
-		}
-
-		if (trim(s)) {
-			desc = s;
-		}
-	}
-
-	if (trim(desc) && !rPresentation) {
-		accDesc = desc;
-	}
-
-	accName = trim(accName.replace(/\s/g, ' ').replace(/\s\s+/g, ' '));
-	accDesc = trim(accDesc.replace(/\s/g, ' ').replace(/\s\s+/g, ' '));
-
-	if (accName == accDesc) {
+	if (accName === accDesc) {
 		accDesc = '';
 	}
 
