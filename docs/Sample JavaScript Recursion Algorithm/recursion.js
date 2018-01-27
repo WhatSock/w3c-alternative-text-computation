@@ -23,7 +23,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		if (!node) {
 			return;
 		}
-		fn(node, refNode);
+		fn(node);
 
 		if (!isException(node, refNode)) {
 			node = node.firstChild;
@@ -175,7 +175,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			}
 		}
 
-		walkDOM(refNode, function(o, refNode) {
+		walkDOM(refNode, function(o) {
 			if (skip || !o || (o.nodeType === 1 && isHidden(o, refNode))) {
 				return;
 			}
