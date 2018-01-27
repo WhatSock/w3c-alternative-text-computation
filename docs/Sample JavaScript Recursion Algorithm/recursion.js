@@ -19,29 +19,29 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return str.replace(/^\s+|\s+$/g, '');
 	};
 
-	var walkDOM = function(node, fn, refObj) {
+	var walkDOM = function(node, fn, refNode) {
 		if (!node) {
 			return;
 		}
-		fn(node, refObj);
+		fn(node, refNode);
 
-		if (!isException(node, refObj)) {
+		if (!isException(node, refNode)) {
 			node = node.firstChild;
 
 			while (node) {
-				walkDOM(node, fn, refObj);
+				walkDOM(node, fn, refNode);
 				node = node.nextSibling;
 			}
 		}
 	};
 
-	var isException = function(o, refObj) {
-		if (!refObj || !o || refObj.nodeType !== 1 || o.nodeType !== 1) {
+	var isException = function(o, refNode) {
+		if (!refNode || !o || refNode.nodeType !== 1 || o.nodeType !== 1) {
 			return false;
 		}
 		var pNode = {
-			role: refObj.getAttribute('role'),
-			name: refObj.nodeName.toLowerCase()
+			role: refNode.getAttribute('role'),
+			name: refNode.nodeName.toLowerCase()
 		};
 		var node = {
 			role: o.getAttribute('role'),
@@ -85,12 +85,12 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 				// if the referenced node is the same as the current node and if the current node is focusable,
 				(
 					(
-						refObj == o &&
+						refNode == o &&
 						node.focusable
 					) ||
 					// or if the referenced node is not the same as the current node and if the referencing parent node matches those within list1.
 					(
-						refObj != o &&
+						refNode != o &&
 						(
 							lst1.roles.indexOf(',' + pNode.role + ',') >= 0 ||
 							(
@@ -111,12 +111,12 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return false;
 	};
 
-	var isHidden = function(o, refObj) {
-		if (o.nodeType !== 1 || o == refObj) {
+	var isHidden = function(o, refNode) {
+		if (o.nodeType !== 1 || o == refNode) {
 			return false;
 		}
 
-		if (o != refObj && ((o.getAttribute && o.getAttribute('aria-hidden') == 'true')
+		if (o != refNode && ((o.getAttribute && o.getAttribute('aria-hidden') == 'true')
 			|| (o.currentStyle && (o.currentStyle['display'] == 'none' || o.currentStyle['visibility'] == 'hidden'))
 				|| (document.defaultView && document.defaultView.getComputedStyle && (document.defaultView.getComputedStyle(o,
 					'')['display'] == 'none' || document.defaultView.getComputedStyle(o, '')['visibility'] == 'hidden'))
@@ -135,8 +135,8 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return -1;
 	};
 
-	var getCSSText = function(o, refObj) {
-		if (o.nodeType !== 1 || o == refObj
+	var getCSSText = function(o, refNode) {
+		if (o.nodeType !== 1 || o == refNode
 			|| ' input select textarea img iframe '.indexOf(' ' + o.nodeName.toLowerCase() + ' ') !== -1)
 			return false;
 		var css = {
@@ -161,7 +161,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return css;
 	}
 
-	var hasParentLabel = function(start, targ, noLabel, refObj) {
+	var hasParentLabel = function(start, targ, noLabel, refNode) {
 		if (!start || !targ || start == targ) {
 			return false;
 		}
@@ -172,7 +172,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			var rP = start.getAttribute ? start.getAttribute('role') : '';
 			rP = (rP != 'presentation' && rP != 'none') ? false : true;
 
-			if (!rP && start.getAttribute && ((!noLabel && trim(start.getAttribute('aria-label'))) || isHidden(start, refObj))) {
+			if (!rP && start.getAttribute && ((!noLabel && trim(start.getAttribute('aria-label'))) || isHidden(start, refNode))) {
 				return true;
 			}
 
@@ -196,13 +196,13 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 	var rPresentation = node.getAttribute('role');
 	rPresentation = (rPresentation != 'presentation' && rPresentation != 'none') ? false : true;
 
-	var walk = function(obj, stop, refObj, isIdRef) {
+	var walk = function(obj, stop, refNode, isIdRef) {
 		var nm = '', nds = [], cssOP = {}, idRefNode = null;
 
 		if (inArray(obj, nds) === -1) {
 			nds.push(obj);
 
-			if (isIdRef || obj == refObj) {
+			if (isIdRef || obj == refNode) {
 				idRefNode = obj;
 			}
 
@@ -212,8 +212,8 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			}
 		}
 
-		walkDOM(obj, function(o, refObj) {
-			if (skip || !o || (o.nodeType === 1 && isHidden(o, refObj))) {
+		walkDOM(obj, function(o, refNode) {
+			if (skip || !o || (o.nodeType === 1 && isHidden(o, refNode))) {
 				return;
 			}
 
@@ -221,7 +221,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 			if (inArray(idRefNode && idRefNode == o ? o : o.parentNode, nds) === -1) {
 				nds.push(idRefNode && idRefNode == o ? o : o.parentNode);
-				cssO = getCSSText(idRefNode && idRefNode == o ? o : o.parentNode, refObj);
+				cssO = getCSSText(idRefNode && idRefNode == o ? o : o.parentNode, refNode);
 			}
 
 			if (o.nodeType === 1) {
@@ -231,8 +231,8 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			}
 
 			if (o.nodeType === 1
-				&& ((!o.firstChild || (o == refObj && (aLabelledby || aLabel))) || (o.firstChild && o != refObj && aLabel))) {
-				if (!stop && o == refObj && aLabelledby) {
+				&& ((!o.firstChild || (o == refNode && (aLabelledby || aLabel))) || (o.firstChild && o != refNode && aLabel))) {
+				if (!stop && o == refNode && aLabelledby) {
 					if (!rolePresentation) {
 						var a = aLabelledby.split(' ');
 
@@ -250,7 +250,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 				if (!trim(name) && aLabel && !rolePresentation) {
 					name = ' ' + trim(aLabel) + ' ';
 
-					if (trim(name) && o == refObj) {
+					if (trim(name) && o == refNode) {
 						skip = true;
 					}
 				}
@@ -282,10 +282,10 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			}
 			name = ' ' + trim(name) + ' ';
 
-			if (trim(name) && !hasParentLabel(o, refObj, false, refObj)) {
+			if (trim(name) && !hasParentLabel(o, refNode, false, refNode)) {
 				nm += name;
 			}
-		}, refObj);
+		}, refNode);
 
 		if (cssOP.before) {
 			nm = cssOP.before + ' ' + nm;
