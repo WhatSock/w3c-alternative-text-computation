@@ -162,12 +162,15 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 	var skip = false;
 	var walk = function(refNode, stop) {
-		var nm = '';
-		var nds = [];
-		var cssOP = {};
+		var fullName = '';
+		var nodes = [];
+		var cssOP = {
+			before: '',
+			after: ''
+		};
 
-		if (nds.indexOf(refNode) === -1) {
-			nds.push(refNode);
+		if (nodes.indexOf(refNode) === -1) {
+			nodes.push(refNode);
 
 			// Enabled in Visual ARIA to prevent self referencing by Visual ARIA tooltips
 			if (!preventSelfCSSRef) {
@@ -175,91 +178,82 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			}
 		}
 
-		walkDOM(refNode, function(o) {
-			if (skip || !o || (o.nodeType === 1 && isHidden(o, refNode))) {
+		walkDOM(refNode, function(node) {
+			if (skip || !node || (isHidden(node, refNode))) {
 				return;
 			}
 
-			var name = '', cssO = {};
+			var name = '';
+			var cssO = {
+				before: '',
+				after: ''
+			};
 
-			if (nds.indexOf(refNode && refNode == o ? o : o.parentNode) === -1) {
-				nds.push(refNode && refNode == o ? o : o.parentNode);
-				cssO = getCSSText(refNode && refNode == o ? o : o.parentNode, refNode);
+			var parent = refNode === node ? node : node.parentNode;
+			if (nodes.indexOf(parent) === -1) {
+				nodes.push(parent);
+				cssO = getCSSText(parent, refNode);
 			}
 
-			if (o.nodeType === 1) {
-				var aLabelledby = o.getAttribute('aria-labelledby') || '', aLabel = o.getAttribute('aria-label') || '',
-					nTitle = o.getAttribute('title') || '', rolePresentation = o.getAttribute('role');
-				rolePresentation = (rolePresentation != 'presentation' && rolePresentation != 'none') ? false : true;
-			}
+			if (node.nodeType === 1) {
+				var aLabelledby = node.getAttribute('aria-labelledby') || '';
+				var aLabel = node.getAttribute('aria-label') || '';
+				var nTitle = node.getAttribute('title') || '';
+				var rolePresentation = ['presentation', 'none'].indexOf(node.getAttribute('role')) !== -1;
 
-			if (o.nodeType === 1
-				&& ((!o.firstChild || (o == refNode && (aLabelledby || aLabel))) || (o.firstChild && o != refNode && aLabel))) {
-				if (!stop && o == refNode && aLabelledby) {
-					if (!rolePresentation) {
-						var a = aLabelledby.split(' ');
+				if (!node.firstChild || (node == refNode && (aLabelledby || aLabel)) || (node.firstChild && node != refNode && aLabel)) {
+					if (!stop && node === refNode && aLabelledby) {
+						if (!rolePresentation) {
+							var ids = aLabelledby.split(' ');
 
-						for (var i = 0; i < a.length; i++) {
-							var rO = document.getElementById(a[i]);
-							name += ' ' + walk(rO, true) + ' ';
+							for (var i = 0; i < ids.length; i++) {
+								var element = document.getElementById(ids[i]);
+								name += ' ' + walk(element, true);
+							}
+							name = trim(name);
+						}
+
+						if (name || rolePresentation) {
+							skip = true;
 						}
 					}
 
-					if (trim(name) || rolePresentation) {
-						skip = true;
+					if (!name && !rolePresentation && aLabel) {
+						name = trim(aLabel);
+
+						if (name && node === refNode) {
+							skip = true;
+						}
+					}
+
+					if (!name && !rolePresentation && ['input', 'select', 'textarea'].indexOf(node.nodeName.toLowerCase()) !== -1 && node.id && document.querySelectorAll('label[for="' + node.id + '"]').length) {
+						var label = document.querySelector('label[for="' + node.id + '"]');
+						name = trim(walk(label, true));
+					}
+
+					if (!name && !rolePresentation && node.nodeName.toLowerCase() == 'img' && trim(node.getAttribute('alt'))) {
+						name = trim(node.getAttribute('alt'));
+					}
+
+					if (!name && !rolePresentation && nTitle) {
+						name = trim(nTitle);
 					}
 				}
-
-				if (!trim(name) && aLabel && !rolePresentation) {
-					name = ' ' + trim(aLabel) + ' ';
-
-					if (trim(name) && o == refNode) {
-						skip = true;
-					}
-				}
-
-				if (!trim(name)
-					&& !rolePresentation && ' input select textarea '.indexOf(' ' + o.nodeName.toLowerCase() + ' ') !== -1 && o.id
-						&& document.querySelectorAll('label[for="' + o.id + '"]').length) {
-					var rO = document.querySelectorAll('label[for="' + o.id + '"]')[0];
-					name = ' ' + trim(walk(rO, true)) + ' ';
-				}
-
-				if (!trim(name) && !rolePresentation && (o.nodeName.toLowerCase() == 'img') && (trim(o.getAttribute('alt')))) {
-					name = ' ' + trim(o.getAttribute('alt')) + ' ';
-				}
-
-				if (!trim(name) && !rolePresentation && nTitle) {
-					name = ' ' + trim(nTitle) + ' ';
-				}
-			} else if (o.nodeType === 3) {
-				name = o.data;
+			} else if (node.nodeType === 3) {
+				name = node.data;
 			}
 
-			if (cssO.before) {
-				name = cssO.before + ' ' + name;
-			}
+			name = cssO.before + ' ' + name + ' ' + cssO.after;
+			name = trim(name);
 
-			if (cssO.after) {
-				name += ' ' + cssO.after;
-			}
-			name = ' ' + trim(name) + ' ';
-
-			if (trim(name) && !hasParentLabel(o, false, refNode)) {
-				nm += name;
+			if (name && !hasParentLabel(node, false, refNode)) {
+				fullName += ' ' + name;
 			}
 		}, refNode);
 
-		if (cssOP.before) {
-			nm = cssOP.before + ' ' + nm;
-		}
+		fullName = cssOP.before + ' ' + fullName + ' ' + cssOP.after;
 
-		if (cssOP.after) {
-			nm += ' ' + cssOP.after;
-		}
-		nm = trim(nm);
-
-		return nm;
+		return trim(fullName);
 	};
 
 	if (isHidden(node, document.body) || hasParentLabel(node, true, document.body)) {
