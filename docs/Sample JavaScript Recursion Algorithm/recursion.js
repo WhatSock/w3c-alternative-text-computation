@@ -141,28 +141,26 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		}
 	};
 
-	var hasParentLabel = function(start, targ, noLabel, refNode) {
-		if (!start || !targ || start == targ) {
-			return false;
-		}
+	var hasParentLabel = function(node, noLabel, refNode) {
+		while (node && node !== refNode) {
+			node = node.parentNode;
 
-		while (start) {
-			start = start.parentNode;
-
-			var rP = start.getAttribute ? start.getAttribute('role') : '';
-			rP = (rP != 'presentation' && rP != 'none') ? false : true;
-
-			if (!rP && start.getAttribute && ((!noLabel && trim(start.getAttribute('aria-label'))) || isHidden(start, refNode))) {
-				return true;
-			} else if (start == targ) {
-				return false;
+			if (node.getAttribute) {
+				if (['presentation', 'none'].indexOf(node.getAttribute('role')) === -1) {
+					if (!noLabel && trim(node.getAttribute('aria-label'))) {
+						return true;
+					}
+					if (isHidden(node, refNode)) {
+						return true;
+					}
+				}
 			}
 		}
 
 		return false;
 	};
 
-	if (isHidden(node, document.body) || hasParentLabel(node, document.body, true, document.body)) {
+	if (isHidden(node, document.body) || hasParentLabel(node, true, document.body)) {
 		return;
 	}
 
@@ -264,7 +262,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			}
 			name = ' ' + trim(name) + ' ';
 
-			if (trim(name) && !hasParentLabel(o, refNode, false, refNode)) {
+			if (trim(name) && !hasParentLabel(o, false, refNode)) {
 				nm += name;
 			}
 		}, refNode);
