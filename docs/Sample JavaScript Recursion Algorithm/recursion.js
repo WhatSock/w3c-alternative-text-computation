@@ -114,32 +114,32 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return false;
 	};
 
-	var getCSSText = function(o, refNode) {
-		if (o.nodeType !== 1 || o == refNode || ['input', 'select', 'textarea', 'img', 'iframe'].indexOf(o.nodeName.toLowerCase()) !== -1) {
+	var getCSSText = function(node, refNode) {
+		if (node.nodeType !== 1 || node == refNode || ['input', 'select', 'textarea', 'img', 'iframe'].indexOf(node.nodeName.toLowerCase()) !== -1) {
 			return false;
 		}
 
-		var css = {
-			before: '',
-			after: ''
+		var getText = function(node, position) {
+			var text = document.defaultView.getComputedStyle(node, position).getPropertyValue('content');
+			if (!text || text === 'none') {
+				return '';
+			} else {
+				return trim(text);
+			}
 		};
 
-		if ((document.defaultView && document.defaultView.getComputedStyle
-			&& (document.defaultView.getComputedStyle(o, ':before').getPropertyValue('content')
-				|| document.defaultView.getComputedStyle(o, ':after').getPropertyValue('content')))) {
-			css.before = trim(document.defaultView.getComputedStyle(o, ':before').getPropertyValue('content'));
-			css.after = trim(document.defaultView.getComputedStyle(o, ':after').getPropertyValue('content'));
-
-			if (css.before == 'none') {
-				css.before = '';
-			}
-
-			if (css.after == 'none') {
-				css.after = '';
-			}
+		if (document.defaultView && document.defaultView.getComputedStyle) {
+			return {
+				before: getText(node, ':before'),
+				after: getText(node, ':after')
+			};
+		} else {
+			return {
+				before: '',
+				after: ''
+			};
 		}
-		return css;
-	}
+	};
 
 	var hasParentLabel = function(start, targ, noLabel, refNode) {
 		if (!start || !targ || start == targ) {
