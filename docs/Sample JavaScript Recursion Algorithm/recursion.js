@@ -161,35 +161,30 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 	};
 
 	var skip = false;
-	var walk = function(obj, stop, refNode, isIdRef) {
+	var walk = function(refNode, stop) {
 		var nm = '';
 		var nds = [];
 		var cssOP = {};
-		var idRefNode = null;
 
-		if (nds.indexOf(obj) === -1) {
-			nds.push(obj);
-
-			if (isIdRef || obj == refNode) {
-				idRefNode = obj;
-			}
+		if (nds.indexOf(refNode) === -1) {
+			nds.push(refNode);
 
 			// Enabled in Visual ARIA to prevent self referencing by Visual ARIA tooltips
 			if (!preventSelfCSSRef) {
-				cssOP = getCSSText(obj, null);
+				cssOP = getCSSText(refNode, null);
 			}
 		}
 
-		walkDOM(obj, function(o, refNode) {
+		walkDOM(refNode, function(o, refNode) {
 			if (skip || !o || (o.nodeType === 1 && isHidden(o, refNode))) {
 				return;
 			}
 
 			var name = '', cssO = {};
 
-			if (nds.indexOf(idRefNode && idRefNode == o ? o : o.parentNode) === -1) {
-				nds.push(idRefNode && idRefNode == o ? o : o.parentNode);
-				cssO = getCSSText(idRefNode && idRefNode == o ? o : o.parentNode, refNode);
+			if (nds.indexOf(refNode && refNode == o ? o : o.parentNode) === -1) {
+				nds.push(refNode && refNode == o ? o : o.parentNode);
+				cssO = getCSSText(refNode && refNode == o ? o : o.parentNode, refNode);
 			}
 
 			if (o.nodeType === 1) {
@@ -206,7 +201,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 						for (var i = 0; i < a.length; i++) {
 							var rO = document.getElementById(a[i]);
-							name += ' ' + walk(rO, true, rO, true) + ' ';
+							name += ' ' + walk(rO, true) + ' ';
 						}
 					}
 
@@ -227,7 +222,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 					&& !rolePresentation && ' input select textarea '.indexOf(' ' + o.nodeName.toLowerCase() + ' ') !== -1 && o.id
 						&& document.querySelectorAll('label[for="' + o.id + '"]').length) {
 					var rO = document.querySelectorAll('label[for="' + o.id + '"]')[0];
-					name = ' ' + trim(walk(rO, true, rO, true)) + ' ';
+					name = ' ' + trim(walk(rO, true)) + ' ';
 				}
 
 				if (!trim(name) && !rolePresentation && (o.nodeName.toLowerCase() == 'img') && (trim(o.getAttribute('alt')))) {
@@ -271,7 +266,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		return;
 	}
 
-	var accName = trim(walk(node, false, node));
+	var accName = trim(walk(node, false));
 	var accDesc = '';
 	skip = false;
 
@@ -294,7 +289,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 			for (var j = 0; j < ids.length; j++) {
 				var element = document.getElementById(ids[j]);
-				s += ' ' + walk(element, true, element, true) + ' ';
+				s += ' ' + walk(element, true) + ' ';
 			}
 			s = trim(s);
 
