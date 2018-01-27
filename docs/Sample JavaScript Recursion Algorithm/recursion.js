@@ -115,9 +115,10 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 	};
 
 	var getCSSText = function(o, refNode) {
-		if (o.nodeType !== 1 || o == refNode
-			|| ['input', 'select', 'textarea', 'img', 'iframe'].indexOf(o.nodeName.toLowerCase()) !== -1)
+		if (o.nodeType !== 1 || o == refNode || ['input', 'select', 'textarea', 'img', 'iframe'].indexOf(o.nodeName.toLowerCase()) !== -1) {
 			return false;
+		}
+
 		var css = {
 			before: '',
 			after: ''
@@ -153,10 +154,9 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 			if (!rP && start.getAttribute && ((!noLabel && trim(start.getAttribute('aria-label'))) || isHidden(start, refNode))) {
 				return true;
-			}
-
-			else if (start == targ)
+			} else if (start == targ) {
 				return false;
+			}
 		}
 
 		return false;
@@ -176,7 +176,10 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 	rPresentation = (rPresentation != 'presentation' && rPresentation != 'none') ? false : true;
 
 	var walk = function(obj, stop, refNode, isIdRef) {
-		var nm = '', nds = [], cssOP = {}, idRefNode = null;
+		var nm = '';
+		var nds = [];
+		var cssOP = {};
+		var idRefNode = null;
 
 		if (nds.indexOf(obj) === -1) {
 			nds.push(obj);
