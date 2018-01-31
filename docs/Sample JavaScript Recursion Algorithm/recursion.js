@@ -1,9 +1,8 @@
 /*!
-calcNames 1.1 (01/15/2018), compute the Name and Description property values for a DOM node
+calcNames 1.2, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
-[Excerpted from Visual ARIA ( https://raw.githubusercontent.com/accdc/visual-aria/master/docs/visual-aria/roles.js )
-Copyright 2018 Bryan Garaventa (http://whatsock.com/training/matrices/visual-aria.htm)
-Part of the ARIA Role Conformance Matrices, distributed under the terms of the Open Source Initiative OSI - MIT License
+Authored by Bryan Garaventa plus contrabutions by Tobias Bengfort
+Distributed under the terms of the Open Source Initiative OSI - MIT License
 */
 
 var calcNames = function(node, fnc, preventSelfCSSRef) {
@@ -116,13 +115,13 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 	var getCSSText = function(node, refNode) {
 		if (node.nodeType !== 1 || node == refNode || ['input', 'select', 'textarea', 'img', 'iframe'].indexOf(node.nodeName.toLowerCase()) !== -1) {
-			return false;
+						return {before: '', after: ''};
 		}
 
 		var getText = function(node, position) {
-			var text = document.defaultView.getComputedStyle(node, position).getPropertyValue('content');
+			var text = document.defaultView.getComputedStyle(node, position).getPropertyValue('content').replace(/^\"|\"$/g, '');
 			if (!text || text === 'none') {
-				return '';
+								return '';
 			} else {
 				return text;
 			}
@@ -134,10 +133,7 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 				after: getText(node, ':after')
 			};
 		} else {
-			return {
-				before: '',
-				after: ''
-			};
+			return {before: '', after: ''};
 		}
 	};
 
@@ -251,7 +247,6 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 		}, refNode);
 
 		fullName = cssOP.before + fullName + cssOP.after;
-
 		return fullName;
 	};
 

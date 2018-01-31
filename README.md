@@ -3,9 +3,8 @@ A study of browser and Assistive Technology support for the W3C Alternative Text
 
 To ensure interoperability, the W3C Alternative Text Computation should be supported in all browsers equally. So I built 5 tests to see how well this is implemented; by using the same convoluted markup structure for each that combines many various aspects of labelling, including programmatically hidden content and nested markup structures. If equally supported, all browsers would reflect the same strings as shown below for the Name and Description calculation.
 
-Visual ARIA is included within each test page to validate a shared Name and Description according to the Alternative Text Computation, as documented at
+A JavaScript calcName algorithm is included within each test page to validate a shared Name and Description according to the Alternative Text Computation, as documented at
 http://www.w3.org/TR/accname-aam-1.1/#mapping_additional_nd_te
-(Which is exposed when mousing over the ARIA Link or form edit field on the test pages after loading Visual ARIA)
 
 Currently, accurate recursion within browsers is inconsistently and unreliably supported, and no Assistive Technologies match any of these naming algorithms.
 
