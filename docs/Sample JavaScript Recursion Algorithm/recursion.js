@@ -5,7 +5,7 @@ Authored by Bryan Garaventa plus contrabutions by Tobias Bengfort
 Distributed under the terms of the Open Source Initiative OSI - MIT License
 */
 
-var calcNames = function(node, fnc, preventSelfCSSRef) {
+var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 	if (!node || node.nodeType !== 1) {
 		return;
 	}
@@ -166,10 +166,14 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 
 		if (nodes.indexOf(refNode) === -1) {
 			nodes.push(refNode);
+			cssOP = getCSSText(refNode, null);
 
 			// Enabled in Visual ARIA to prevent self referencing by Visual ARIA tooltips
-			if (!preventSelfCSSRef) {
-				cssOP = getCSSText(refNode, null);
+			if (preventVisualARIASelfCSSRef) {
+				if (cssOP.before.indexOf(' [ARIA] ') !== -1 || cssOP.before.indexOf(' aria-') !== -1) 
+					cssOP.before = '';
+				if (cssOP.after.indexOf(' [ARIA] ') !== -1 || cssOP.after.indexOf(' aria-') !== -1)  
+					cssOP.after = '';
 			}
 		}
 
@@ -188,6 +192,15 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 			if (nodes.indexOf(parent) === -1) {
 				nodes.push(parent);
 				cssO = getCSSText(parent, refNode);
+
+				// Enabled in Visual ARIA to prevent self referencing by Visual ARIA tooltips
+				if (preventVisualARIASelfCSSRef) {
+					if (cssO.before.indexOf(' [ARIA] ') !== -1 || cssO.before.indexOf(' aria-') !== -1) 
+						cssO.before = '';
+					if (cssO.after.indexOf(' [ARIA] ') !== -1 || cssO.after.indexOf(' aria-') !== -1)  
+						cssO.after = '';
+				}
+
 			}
 
 			if (node.nodeType === 1) {
@@ -213,6 +226,8 @@ var calcNames = function(node, fnc, preventSelfCSSRef) {
 							skip = true;
 						}
 					}
+
+/*!@ Add values of custom controls here if recursive controls with values */
 
 					if (!name && !rolePresentation && aLabel) {
 						name = aLabel;
