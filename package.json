@@ -1,0 +1,16 @@
+{
+  "name": "w3c-alternative-text-computation",
+  "version": "1.0.0",
+  "description": "A study of browser and Assistive Technology support for the W3C Alternative Text Computation.",
+  "main": "docs/Sample JavaScript Recursion Algorithm/recursion.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/accdc/w3c-alternative-text-computation.git"
+  },
+  "author": "Bryan Garaventa",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/accdc/w3c-alternative-text-computation/issues"
+  },
+  "homepage": "https://github.com/accdc/w3c-alternative-text-computation#readme"
+}
