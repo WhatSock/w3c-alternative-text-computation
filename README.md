@@ -1,4 +1,4 @@
-# w3c-alternative-text-computation
+# w3c-alternative-text-computation - CalcNames 1.3
 A study of browser and Assistive Technology support for the W3C Alternative Text Computation.
 
 To ensure interoperability, the W3C Alternative Text Computation should be supported in all browsers equally. So I built 5 tests to see how well this is implemented; by using the same convoluted markup structure for each that combines many various aspects of labelling, including programmatically hidden content and nested markup structures. If equally supported, all browsers would reflect the same strings as shown below for the Name and Description calculation.
