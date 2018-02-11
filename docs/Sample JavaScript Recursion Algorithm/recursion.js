@@ -1,5 +1,5 @@
 /*!
-CalcNames 1.3, compute the Name and Description property values for a DOM node
+CalcNames 1.4, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
 Functionality mirrors the steps within the W3C Accessible Name and Description computation algorithm.
 http://www.w3.org/TR/accname-aam-1.1/
@@ -369,8 +369,10 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 	/*
 	HTML5 Block Elements indexed from:
 	https://github.com/webmodules/block-elements
+	Note: 'br' was added to this array because it impacts visual display and should thus add a space .
+	Reference issue: https://github.com/w3c/accname/issues/4
 	*/
-	var blockElements = ['address', 'article', 'aside', 'blockquote', 'canvas', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'main', 'nav', 'noscript', 'ol', 'output', 'p', 'pre', 'section', 'table', 'tfoot', 'ul', 'video'];
+	var blockElements = ['address', 'article', 'aside', 'blockquote', 'br', 'canvas', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'main', 'nav', 'noscript', 'ol', 'output', 'p', 'pre', 'section', 'table', 'tfoot', 'ul', 'video'];
 
 	var isHidden = function(node, refNode) {
 		if (node.nodeType !== 1 || node == refNode) {
