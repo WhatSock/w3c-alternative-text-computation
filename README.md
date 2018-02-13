@@ -1,12 +1,25 @@
-# w3c-alternative-text-computation - CalcNames 1.4
-A study of browser and Assistive Technology support for the W3C Alternative Text Computation.
+W3C Accessible Name Computation Prototype 1.4
+A functional prototype for the W3C Alternative Text Computation.
 
-To ensure interoperability, the W3C Alternative Text Computation should be supported in all browsers equally. So I built 5 tests to see how well this is implemented; by using the same convoluted markup structure for each that combines many various aspects of labelling, including programmatically hidden content and nested markup structures. If equally supported, all browsers would reflect the same strings as shown below for the Name and Description calculation.
+The Accessible Name Computation Prototype
+-----
 
-A JavaScript calcName algorithm is included within each test page to validate a shared Name and Description according to the Alternative Text Computation, as documented at
+For testing purposes, a naming computation algorithm has been created using JavaScript for the purpose of simulating the accessible name computation that browsers should be reflecting in the accessibility tree, which has been constructed in accordance with the W3C AccName specification at
 http://www.w3.org/TR/accname-aam-1.1/
 
-Currently, accurate recursion within browsers is inconsistently and unreliably supported, and no Assistive Technologies match any of these naming algorithms.
+Introduction
+-----
+
+To ensure interoperability, the W3C Alternative Text Computation must be supported in all browsers equally.
+
+Five tests are included to see how well this is implemented; by using the same convoluted markup structure for each that combines many various aspects of labelling, including programmatically hidden content and nested markup structures.
+
+If equally supported, all browsers would reflect the same strings as shown below for the Name and Description calculation.
+
+Current Testing Results
+-----
+
+At present, accurate recursion within browsers is inconsistently and unreliably supported, and no Assistive Technologies match any of these naming algorithms.
 
 The following test pages demonstrate this, which can be verified using Accessibility Tree examination utilities as documented at
 http://whatsock.com/training/#hd2
@@ -14,7 +27,7 @@ http://whatsock.com/training/#hd2
 Standard use of role="link" with nested content structures.
 -----
 
-https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/focusable%20role=link.html
+https://whatsock.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/focusable%20role=link.html
 
 The Accessibility Tree should match: Name: "My name is Garaventa the weird. (QED) Where are my marbles?" Description: ""
 
@@ -28,7 +41,7 @@ Browser Test Results:
 Standard form field with aria-labelledby to recursively process embedded markup.
 -----
 
-https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20aria-labelledby.html
+https://whatsock.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20aria-labelledby.html
 
 The Accessibility Tree should match: Name: "My name is Garaventa the weird. (QED) Where are my marbles?" Description: ""
 
@@ -42,7 +55,7 @@ Browser Test Results:
 Standard form field that uses an HTML label element with matching 'for' and 'id' attributes.
 -----
 
-https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20label%20element.html
+https://whatsock.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20label%20element.html
 
 The Accessibility Tree should match: Name: "My name is Garaventa the weird. (QED) Where are my marbles?" Description: ""
 
@@ -56,7 +69,7 @@ Browser Test Results:
 Standard form field that uses aria-label to set the Name and aria-describedby to set the Description.
 -----
 
-https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20aria-describedby.html
+https://whatsock.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20aria-describedby.html
 
 The Accessibility Tree should match: Name: "Important stuff" Description: "My name is Garaventa the weird. (QED) Where are my marbles?"
 
@@ -70,7 +83,7 @@ Browser Test Results:
 Standard form field that uses aria-labelledby to set the Name and aria-describedby to set the Description including hidden sections that surround the referenced elements.
 -----
 
-https://accdc.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20aria-describedby%20+%20hidden.html
+https://whatsock.github.io/w3c-alternative-text-computation/Name%20and%20Description%20Tests/form%20field%20with%20aria-describedby%20+%20hidden.html
 
 The Accessibility Tree should match: Name: "Important stuff" Description: "My name is Garaventa the weird. (QED) Where are my marbles?"
 
