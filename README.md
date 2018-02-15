@@ -104,3 +104,9 @@ Additionally, screen readers such as JAWS and NVDA don't come anywhere near conv
 In the interest of ensuring future interoperability for web technologies across all devices, it would be beneficial for all browsers to equally support the same Alternative Text Computation algorithm, and have the same algorithm supported in ATs like screen readers as well, for all of the previously mentioned interactive elements and ARIA roles. If assistive technologies utilize the accessibility tree to convey this information, then these browser improvements will automatically increase accessibility within these assistive technologies.
 
 Otherwise, it will be impossible to create complex dynamic constructs that are consistently and reliably labelled for Assistive Technology users in the future.
+
+Related projects:
+-----
+
+* WhatSock Organization: https://github.com/whatsock
+* Visual ARIA: https://github.com/accdc/visual-aria
