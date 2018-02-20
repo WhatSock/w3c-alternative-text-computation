@@ -51,7 +51,7 @@ var links = [];
 for (name in tests) {
 	var t = tTemplate.replace("[[TestStatementCodeName]]", name).replace("[[TestStatementCodeBlock]]", tests[name]);
 	oJax.StringToFile(t, tFolder + name + ".html");
-	links.push("<a href=\"" + tFolder + name + ".html" + "\">" + name + "</a>");
+	links.push("<a href=\"" + name + ".html" + "\">" + name + "</a>");
 }
 
 var t = iTemplate.replace("[[TestStatementCodeList]]", links.join("\n</li><li>\n"));
