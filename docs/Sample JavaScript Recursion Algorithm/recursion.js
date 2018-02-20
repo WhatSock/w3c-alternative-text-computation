@@ -1,5 +1,5 @@
 /*!
-CalcNames 1.6, compute the Name and Description property values for a DOM node
+CalcNames 1.7, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
 Functionality mirrors the steps within the W3C Accessible Name and Description computation algorithm.
 http://www.w3.org/TR/accname-aam-1.1/
@@ -198,8 +198,8 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					name = getObjectValue(nRole, node, true);
 				}
 
-				// Otherwise, if name is still empty and current node is non-presentational and is a standard img with a non-empty alt attribute, set alt attribute value as the accessible name.
-				else if (!name && !rolePresentation && nTag == 'img' && node.getAttribute('alt')) {
+				// Otherwise, if name is still empty and current node is non-presentational and is a standard img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
+				else if (!name && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && node.getAttribute('alt')) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(node.getAttribute('alt')));
 				}
