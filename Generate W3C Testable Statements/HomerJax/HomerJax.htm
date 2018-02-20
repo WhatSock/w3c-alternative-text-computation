@@ -1,0 +1,856 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+
+<html>
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Windows (vers 25 March 2009), see www.w3.org">
+
+  <title>HomerJax</title>
+</head>
+
+<body>
+  Version 1.1<br>
+  May 27, 2010<br>
+  Copyright 2009 - 2015 by Jamal Mazrui<br>
+  GNU Lesser General Public License (LGPL)
+
+  <p>----------</p>
+
+  <h1>Contents</h1>
+
+  <ul>
+    <li><a href="#A1">Introduction</a></li>
+
+    <li><a href="#A2">Installation</a></li>
+
+    <li><a href="#A3">COM Exchange Format</a></li>
+
+    <li><a href="#A4">Dialog Methods</a></li>
+
+    <li><a href="#A5">File Methods</a></li>
+
+    <li><a href="#A6">Folder Methods</a></li>
+
+    <li><a href="#A7">HTML Parsing Methods</a></li>
+
+    <li><a href="#A8">JavaScript Support Methods</a></li>
+
+    <li><a href="#A9">Path Methods</a></li>
+
+    <li><a href="#A10">Process Methods</a></li>
+
+    <li><a href="#A11">Regular Expression Methods</a></li>
+
+    <li><a href="#A12">Registry Methods</a></li>
+
+    <li><a href="#A13">Shell Methods</a></li>
+
+    <li><a href="#A14">String Methods</a></li>
+
+    <li><a href="#A15">URL Parsing Methods</a></li>
+
+    <li><a href="#A16">Variant Support Methods</a></li>
+
+    <li><a href="#A17">Web Request Methods</a></li>
+
+    <li><a href="#A18">XML Parsing Methods</a></li>
+
+    <li><a href="#A19">Change Log</a></li>
+
+    <li><a href="#A20">Development Notes</a></li>
+  </ul>
+
+  <h2><a name="A1">Introduction</a></h2>
+
+  <p><a name="A1">The word &quot;Homer&quot; is a brand name I
+  sometimes use for developer tools I create. HomerJax is a library of
+  convenience functions for accessing Internet resources. It is written
+  primarily in JScript, the Microsoft version of JavaScript, and is
+  dependent on several COM servers distributed with Windows. The word
+  &quot;Jax&quot; derives from Ajax, which originally meant
+  &quot;Asynchronous JavaScript and XML.&quot; Ajax technologies focus
+  on building dynamic user interfaces in web browsers. HomerJax
+  functions use some of these core technologies, but focus on reading,
+  interpreting, and writing data from the Internet.</a></p>
+
+  <p>Since the Internet is a great source of accessible information for
+  people with visual disabilities who cannot readily read the printed
+  word, my hope is that this library makes it easier for developers,
+  including blind ones like myself, to build applications that take
+  advantage of new social networking sites such as Twitter, FaceBook,
+  and many others. I intend for HomerJax to be accessible via various
+  programming environments, including the Windows Script Host, screen
+  reader scripting languages, and other programming languages via a COM
+  server interface.</p>
+
+  <p>HomerJax methods are divided into categories indicated by a prefix
+  at the beginning of their names: Dialog, File, Folder, Html, Js,
+  Path, RegExp, Registry, String, Vt, Web, and Xml. By convention,
+  HomerJax variable names use lower case prefixes to indicate the data
+  type: s for string, i for integer, n for floating point number, l for
+  list, d for dictionary, and o for other COM object. Method and
+  variable names use upper camel case (like the .NET Framework), e.g.,
+  XmlGetValue rather than XMLGetValue. JavaScript is a case-sensitive
+  language, so methods need to be called with appropriate
+  capitalization.</p>
+
+  <p>An example of programming with HomerJax is in the JAWS scripts for
+  Firefox, called Firefox Max or FxMax, available at<br>
+  <a href=
+  "http://EmpowermentZone.com/FxMax.exe">http://EmpowermentZone.com/FxMax.exe</a></p>
+
+  <p>or .zip</p>
+
+  <h2><a name="A2">Installation</a></h2>
+
+  <p><a name="A2">HomerJax is a COM server defined as a &quot;Windows
+  script component&quot; in the file HomerJax.wsc. Unlike most COM
+  servers, a client object may be instantiated without the need to have
+  the COM server registered on the computer (in the Windows registry),
+  which requires administrative rights. This is done via the GetObject
+  function of a programming language that supports COM automation. For
+  example, the syntax in VBScript is</a></p>
+
+  <p>Set oJax = GetObject(&quot;script:&quot; &amp; sFile)</p>
+
+  <p>where sFile is a string containing the complete path of the
+  HomerJax.wsc file.</p>
+
+  <p>The technology behind such a COM server is explained in the
+  following article:</p>
+
+  <p>Doctor Scripto&#39;s Script Shop: Windows Script Components Have a
+  COM-ing Effect<br>
+  <a href=
+  "http://technet.microsoft.com/en-us/library/ee692823.aspx">http://technet.microsoft.com/en-us/library/ee692823.aspx</a></p>
+
+  <p>If programming code results in an error when trying to instantiate
+  a HomerJax object, the cause is probably related to some DLLs of the
+  Windows Script Host not being properly registered. This condition
+  seems to happen with some Windows XP systems. Applying the
+  suggestions in the following article generally resolves the
+  problem:</p>
+
+  <p>When I run a script in Windows Script, I receive an error message:
+  &quot;Library not registered&quot;<br>
+  <a href=
+  "http://support.microsoft.com/kb/949140">http://support.microsoft.com/kb/949140</a></p>
+
+  <p>For convenient reference, these articles are also included in the
+  HomerJax archive.</p>
+
+  <p>The HomerJax COM server may also be registered on the system,
+  thereby enabling use of the CreateObject function. At a command
+  prompt, the following syntax may be used for registration:</p>
+
+  <p>RegSvr32.exe file:\\sFile</p>
+
+  <p>The following syntax could then be used in code:</p>
+
+  <p>Set oJax = CreateObject(&quot;Homer.Jax&quot;)</p>
+
+  <p>Subsequent sections of this documentation list methods that may be
+  executed with a HomerJax object.</p>
+
+  <h2><a name="A3">COM Exchange Format</a></h2>
+
+  <p><a name="A3">The Component Object Model (COM) is a set of Windows
+  standards by which different programming languages and applications
+  can communicate. COM uses a flexible data type called a variant,
+  which can be an individual value, array of values, or complex object
+  with methods, properties, and events. In general, any COM client can
+  use string, numeric, and COM objects as the data types of parameters
+  or return values. Some, however, cannot use arrays. COM exchange
+  format is intended to support collections, as well as primitive data
+  types, for use by any COM client. Rather than an array, a list COM
+  object is used from the .NET Framework (any version). A COM object
+  dictionary is also used from the Windows Script Host.</a></p>
+
+  <p>HomerJax includes a method called JsToVt, which converts data in
+  JSON format to variant types understood by VBScript (and any COM
+  client language). JavaScript arrays are converted to COM objects with
+  the progID &quot;System.Collections.ArrayList.&quot; The methods and
+  properties of this object are documented at<br>
+  <a href=
+  "http://msdn.microsoft.com/en-us/library/system.collections.arraylist.aspx">
+  http://msdn.microsoft.com/en-us/library/system.collections.arraylist.aspx</a></p>
+
+  <p>JavaScript objects, which are like dictionaries, are converted to
+  COM objects with the progID &quot;Scripting.Dictionary.&quot; This
+  object is documented at<br>
+  <a href=
+  "http://msdn.microsoft.com/en-us/library/x4k5wbx4(VS.85).aspx">http://msdn.microsoft.com/en-us/library/x4k5wbx4(VS.85).aspx</a></p>
+
+  <p>In Visual Basic and other languages, either of these types of
+  object collections may be iterated with the &quot;For Each&quot;
+  statement. These objects have an &quot;Item&quot; method, which is
+  the default COM method of the object, so syntax can succinctly referr
+  to items without even using the &quot;Item&quot; keyword (just using
+  an integer element of a list or string key of a dictionary enclosed
+  in parentheses). The code of the demo program illustrates this in
+  getting public messages from Twitter.</p>
+
+  <p>HomerJax includes various methods for converting between
+  JavaScript Object Notation (JSON), variant data types, and COM
+  exchange format. This provides much flexibility for accessing data on
+  the Internet.</p>
+
+  <h2><a name="A4">Dialog Methods</a></h2><a name="A4"><br>
+  DialogBrowseForFolder(sFolder) = Specify a folder path</a>
+
+  <p>DialogConfirm(sTitle, sMessage, sDefault) = Get choice from a
+  standard Yes, No, or Cancel message box</p>
+
+  <p>DialogInput(sTitle, sField, sValue) = Get input from a single edit
+  box</p>
+
+  <p>DialogShow(oTitle, oText) = Show a title and message</p>
+
+  <h2><a name="A5">File Methods</a></h2>
+
+  <p><a name="A5">FileCopy(sSource, sTarget) = Copy source to
+  destination file, replacing if it exists</a></p>
+
+  <p>FileDelete(sFile) = Delete a file if it exists, and test whether
+  it is subsequently absent<br>
+  either because it was successfully deleted or because it was!present
+  in the first place</p>
+
+  <p>FileExists(sFile) = Test whether File exists</p>
+
+  <p>FileGetDate(sFile) = Get date of a file</p>
+
+  <p>FileGetSize(sFile) = Get size of a file</p>
+
+  <p>FileGetType(sFile) = Get file type</p>
+
+  <p>FileIsUnicode(sFile) = Test whether file is Unicode</p>
+
+  <p>FileIsUTF8(sFile) = Test whether file is UTF-8</p>
+
+  <p>FileMove(sSource, sTarget) = Move source to destination file,
+  replacing if it exists</p>
+
+  <p>FileToString(sFile) = Get content of text file</p>
+
+  <h2><a name="A6">Folder Methods</a></h2>
+
+  <p><a name="A6">FolderCopy(sSource, sTarget) = Copy source to
+  destination Folder, replacing if it exists</a></p>
+
+  <p>FolderCreate(sFolder) = Create folder</p>
+
+  <p>FolderDelete(sFolder) = Delete a Folder if it exists, and test
+  whether it is subsequently absent<br>
+  either because it was successfully deleted or because it was!present
+  in the first place</p>
+
+  <p>FolderExists(sFolder) = Test whether folder exists</p>
+
+  <p>FolderGetDate(sFolder) = Get date of a Folder</p>
+
+  <p>FolderGetSize(sFolder) = Get size of folder, summing the sizes of
+  files and subfolders it contains</p>
+
+  <p>FolderMove(sSource, sTarget) = Move source to destination Folder,
+  replacing if it exists</p>
+
+  <h2><a name="A7">HTML Parsing Methods</a></h2>
+
+  <p><a name="A7">HtmlDecodeString(sText) = Decode a string from HTML
+  or XML</a></p>
+
+  <p>HtmlEncodeString(sText) = Encode a string for HTML or XML</p>
+
+  <p>HtmlGetLinks(sUrl) = Get a list of two-item lists containing the
+  URL and text of a link</p>
+
+  <p>HtmlGetTableText(sUrl, iTable) = Get the text of an HTML table
+  specified by number, or null for all of them</p>
+
+  <p>HtmlGetText(sUrl, bAddHeader) = Get the text of an HTML page,
+  optionally including the source URL at the top</p>
+
+  <p>HtmlGetUrls(sUrl) = Get a list of URLs linked to a web page</p>
+
+  <h2><a name="A8">JavaScript Support Methods</a></h2>
+
+  <p><a name="A8">JsDictionaryToEncodedString(d) = Convert dictionary
+  to string with http encoding</a></p>
+
+  <p>JsDictionaryToVt(d) = Convert JScript dictionary to variant</p>
+
+  <p>JsEval(sCode, o1, o2, o3, o4) = Evaluate sCode, optionally
+  referencing up to 4 parameters of any type, and return the result</p>
+
+  <p>JsInitArray(oValue, iLength) = Initialize a JScript array</p>
+
+  <p>JsInspectObject(sName, oValue) = Report on type of object and its
+  subobjects</p>
+
+  <p>JsIsBlank(sText) = Test if string is empty or white space</p>
+
+  <p>JsIsMute(o) = test for empty string</p>
+
+  <p>JsIsNull(o) = Test for null</p>
+
+  <p>JsIsObject(o) = Test for object</p>
+
+  <p>JsIsUndefined(o) = Test whether object is undefined</p>
+
+  <p>JsMin(i, j) = Return minimum of two numbers</p>
+
+  <p>JSNumber(o) = Convert to JScript number</p>
+
+  <p>JsObjectToVt(oValue) = Convert JScript object to variant</p>
+
+  <p>JsPrint(o) = Print to screen using console mode of Windows Script
+  Host</p>
+
+  <p>JsPrintObject(sName, oValue) = Print type of object and its
+  subobjects</p>
+
+  <p>JsSplit(sText, sDelimiter) = Split but ensure an empty array for
+  empty text</p>
+
+  <p>JsSplitLines(sText) = JsSplit by line feeds after chomping</p>
+
+  <p>JsString(o) = Convert to a JScript string</p>
+
+  <p>JsToVt(sJs) = Convert string in JavaScript Object Notation to COM
+  exchange format</p>
+
+  <h2><a name="A9">Path Methods</a></h2>
+
+  <p><a name="A9">PathCombine(sFolder, sName) = Combine folder and name
+  to form a valid path</a></p>
+
+  <p>PathCreateTempFolder() = Create temporary folder and return its
+  full path</p>
+
+  <p>PathExists(sPath) = Test whether path exists</p>
+
+  <p>PathGetBase(sPath) = Get base/root name of a file or folder</p>
+
+  <p>PathGetCurrentDirectory() = Get current directory of active
+  process</p>
+
+  <p>PathGetExtension(sPath) = Get extention of file or folder</p>
+
+  <p>PathGetFolder(sPath) = Get the parent folder of a file or
+  folder</p>
+
+  <p>PathGetInternetCacheFolder() = Get Windows folder for temporary
+  Internet files</p>
+
+  <p>PathGetLong(sPath) = Get long name of file or folder</p>
+
+  <p>PathGetName(sPath) = Get the file or folder name at the end of a
+  path</p>
+
+  <p>PathGetShort(sPath) = Get short path (8.3 style) of a file or
+  folder</p>
+
+  <p>PathGetSpec(sDir, sWildcards, sFlags) = Get a list of paths,
+  specifying folder, wild card pattern, and sort order</p>
+
+  <p>PathGetTempFile() = Get full path of a temporary file</p>
+
+  <p>PathGetTempFolder() = Get Windows folder for temporary files</p>
+
+  <p>PathGetTempName() = Get Name for temporary file or folder</p>
+
+  <p>PathGetValid(sDir, sBase, sExt, bUnique) = Make a valid file name
+  from a string, optionally unique</p>
+
+  <p>PathSetCurrentDirectory(sDir) = Set current directory of active
+  process, and return previously current directory</p>
+
+  <h2><a name="A10">Process Methods</a></h2>
+
+  <p><a name="A10">ProcessGetModules() = Return collection of process
+  modules</a></p>
+
+  <p>ProcessIsModuleActive(sName) = Test if process is active in
+  memory</p>
+
+  <p>ProcessQueryName(sName) = Returns a collection of 0 or more
+  Win32_Process objects</p>
+
+  <p>ProcessTerminateModule(sName) = Terminate a process by name</p>
+
+  <h2><a name="A11">Regular Expression Methods</a></h2>
+
+  <p><a name="A11">RegExpContains(sText, sMatch, bIgnoreCase) = Get
+  Array containing the starting index and text of the first match of a
+  regular expression<br>
+  where sText is the string to search<br>
+  sMatch is the regular expression to match<br>
+  bIgnoreCase indicates whether capitalization matters</a></p>
+
+  <p>RegExpContainsLast(sText, sMatch, bIgnoreCase) = Get list
+  containing the starting index and text of the last match of a regular
+  expression<br>
+  where sText is the string to search<br>
+  sMatch is the regular expression to match<br>
+  bIgnoreCase indicates whether capitalization matters</p>
+
+  <p>RegExpCount(sText, sMatch, bIgnoreCase) = Count matches of a
+  regular expression<br>
+  where sText is the string to search<br>
+  sMatch is the regular expression to match<br>
+  bIgnoreCase indicates whether capitalization matters</p>
+
+  <p>RegExpExtract(sText, sMatch, bIgnoreCase) = Get list containing
+  matches of a regular expression<br>
+  where sText is the string to search<br>
+  sMatch is the regular expression to match<br>
+  bIgnoreCase indicates whether capitalization matters</p>
+
+  <p>RegExpReplace(sText, sMatch, sReplace, bIgnoreCase) = Replace text
+  matching a regular expression<br>
+  where sText is the string to search<br>
+  sMatch is the regular expression to match<br>
+  sReplace is the replacement text<br>
+  bIgnoreCase indicates whether capitalization matters</p>
+
+  <p>RegExpTest(sText, sMatch, bIgnoreCase) = Test match of a regular
+  expression<br>
+  where sText is the string to search<br>
+  sMatch is the regular expression to match<br>
+  bIgnoreCase indicates whether capitalization matters</p>
+
+  <h2><a name="A12">Registry Methods</a></h2>
+
+  <p><a name="A12">RegistryGetString(iRootKey, sSubKey, sValueName) =
+  Get a registry string</a></p>
+
+  <p>RegistryRead(sKey) = Get a string from the registry</p>
+
+  <p>RegistrySetString(iRootKey, sSubKey, sValueName, sValueData) = Set
+  a registry string</p>
+
+  <p>RegistryWrite(sKey, sValue) = Write a string to the registry</p>
+
+  <h2><a name="A13">Shell Methods</a></h2>
+
+  <p><a name="A13">ShellCreateShortcut(sFile, sTargetPath,
+  sWorkingDirectory, iWindowStyle, sHotkey) = Create a .lnk or .url
+  file</a></p>
+
+  <p>ShellExec(sCommand) = Run a console mode command and return its
+  standard output</p>
+
+  <p>ShellExecute(sFile, sParams, sFolder, sVerb, iWindowStyle) =
+  Execute a command with a verb like RunAs</p>
+
+  <p>ShellExpandEnvironmentVariables(sText) = Replace environment
+  variables with their values</p>
+
+  <p>ShellGetEnvironmentVariable(sVariable) = Get the value of an
+  environment variable</p>
+
+  <p>ShellGetShortcutTargetPath(sFile) = Get the target path of a
+  shortcut file</p>
+
+  <p>ShellGetSpecialFolder(vFolder) = Get a special Windows folder</p>
+
+  <p>ShellInvokeVerb(sPath, sVerb) = Invoke a verb on a file or
+  folder</p>
+
+  <p>ShellOpen(sPath) = Open a file or folder with the default program
+  associated with its type</p>
+
+  <p>ShellOpenWith(sExe, sParam) = Open a program with a file</p>
+
+  <p>ShellRun(sFile, iStyle, bWait) = Launch a program or file,
+  indicating its window style &amp;&amp; whether to wait before
+  returning<br>
+  window styles:<br>
+  0 Hides the window &amp;&amp; activates another window<br>
+  1 Activates &amp;&amp; displays a window. If the window is minimized
+  || maximized, the<br>
+  system restores it to its original size &amp;&amp; position. This
+  flag should be used<br>
+  when specifying an application for the first time<br>
+  2 Activates the window &amp;&amp; displays it minimized<br>
+  3 Activates the window &amp;&amp; displays it maximized<br>
+  4 Displays a window in its most recent size &amp;&amp; position. The
+  active window<br>
+  remains active<br>
+  5 Activates the window &amp;&amp; displays it in its current size
+  &amp;&amp; position<br>
+  6 Minimizes the specified window &amp;&amp; activates the next
+  top-level window in the Z<br>
+  order<br>
+  7 Displays the window as a minimized window. The active window
+  remains active<br>
+  8 Displays the window in its current state. The active window remains
+  active<br>
+  9 Activates &amp;&amp; displays the window. If it is minimized ||
+  maximized, the system<br>
+  restores it to its original size &amp;&amp; position. An application
+  should specify<br>
+  this flag when restoring a minimized window<br>
+  10 Sets the show state based on the state of the program that started
+  the<br>
+  application</p>
+
+  <p>ShellRunCommandPrompt(sDir) = Open a command prompt in the
+  directory specified</p>
+
+  <p>ShellRunExplorerWindow(sDir) = Open Windows Explorer in the
+  directory specified</p>
+
+  <p>ShellWait(sPath) = Run a program and wait for it to return</p>
+
+  <h2><a name="A14">String Methods</a></h2>
+
+  <p><a name="A14">StringAppendToFile(sText, sFile, sDivider) = Append
+  string to File, omitting divider if the first one</a></p>
+
+  <p>StringChomp(sText) = Chop \n for both ends of a string</p>
+
+  <p>StringChopLeft(sText, iCount) = Remove iCount characters from left
+  of sText</p>
+
+  <p>StringChopRight(sText, iCount) = Remove iCount characters from
+  Right of sText</p>
+
+  <p>StringContains(sText, sMatch, bIgnoreCase) = Test if a string is
+  contained in another</p>
+
+  <p>StringConvertToMacLineBreak(sText) = Convert to Macintosh line
+  break, \r</p>
+
+  <p>StringConvertToUnixLineBreak(sText) = Convert to Unix line break,
+  \n</p>
+
+  <p>StringConvertToWinLineBreak(sText) = Convert to standard Windows
+  line break, \r\n</p>
+
+  <p>StringCount(sText, sMatch) = Count occurrences of a string within
+  another string</p>
+
+  <p>StringEndsWith(sText, sSuffix, bIgnoreCase) = Test whether first
+  string ends with second one</p>
+
+  <p>StringEqual(s1, s2) = Test if two strings are exactly equal</p>
+
+  <p>StringEquiv(s1, s2) = Test whether two strings are the same except
+  for capitalization</p>
+
+  <p>StringGetASCII(sText) = Get space delimited ASCII codes for
+  characters in string</p>
+
+  <p>StringIsUnicode(sText) = Test whether a string is Unicode</p>
+
+  <p>StringIsUTF8(sText) = Test whether a string is UTF-8</p>
+
+  <p>StringLeft(sText, iCount) = Return leftmost characters of a
+  string</p>
+
+  <p>StringLength(sText) = Return length of a string</p>
+
+  <p>StringLower(sText) = Convert string to lower case</p>
+
+  <p>StringPlural(sItem, iCount) = Return singular or plural form of a
+  string, depending on whether count equals one</p>
+
+  <p>StringPrependUTF8(sText) = Add UTF8 prefix to string</p>
+
+  <p>StringQuote(sText) = Quote a string</p>
+
+  <p>StringReplace(sText, sMatch, sReplace, bIgnoreCase) = Replace
+  text</p>
+
+  <p>StringReplaceAll(sText, sMatch, sReplace, bIgnoreCase) = Replace
+  all occurrences of a string within another</p>
+
+  <p>StringRight(sText, iCount) = Return rightmost characters of a
+  string</p>
+
+  <p>StringSlice(sText, iStart, iEnd) = return sText.slice(iStart,
+  iEnd)</p>
+
+  <p>StringStartsWith(sText, sPrefix, bIgnoreCase) = Test whether first
+  string starts with second one</p>
+
+  <p>StringToFile(sText, sFile) = Saves string to text file, replacing
+  if it exists</p>
+
+  <p>StringToList(sText, sDelimiter) = Convert string with specified
+  delimiter to list</p>
+
+  <p>StringTrim(sText) = Trim white space from both ends of a
+  string</p>
+
+  <p>StringTrimLeft(sText) = Trim white space from left end of a
+  string</p>
+
+  <p>StringTrimRight(sText) = Trim white space from right end of a
+  string</p>
+
+  <p>StringUnquote(sText) = Unquote a string</p>
+
+  <p>StringUpper(sText) = Convert string to upper case</p>
+
+  <p>StringWrap(sText, iMaxLine) = var aLines, aWords</p>
+
+  <h2><a name="A15">URL Parsing Methods</a></h2>
+
+  <p><a name="A15">UrlCreate(sProtocol, sHost, sPath, sQuery) = Create
+  a URL from components</a></p>
+
+  <p>UrlGetBaseDomain(sUrl) = Get base domain of a URL</p>
+
+  <p>UrlGetExtension(sUrl) = Get extension of a URL</p>
+
+  <p>UrlGetFile(sUrl) = Get file of a URL</p>
+
+  <p>UrlGetFolder(sUrl) = Get folder of a URL</p>
+
+  <p>UrlGetFragment(sUrl) = Get fragment of a URL</p>
+
+  <p>UrlGetHost(sUrl) = Get subdomain and domain of a URL</p>
+
+  <p>UrlGetPath(sUrl) = Get path of a URL</p>
+
+  <p>UrlGetPathPlus(sUrl) = Get path and fragment or query of a URL</p>
+
+  <p>UrlGetPrePath(sUrl) = Get part of URL before path</p>
+
+  <p>UrlGetProtocol(sUrl) = Get protocol of URL</p>
+
+  <p>UrlGetQuery(sUrl) = Get query of URL</p>
+
+  <p>UrlGetSubdomain(sUrl) = Get subdomain of a URL</p>
+
+  <p>UrlNormalize(sUrl, sBase) = Normalize a URL for comparison</p>
+
+  <h2><a name="A16">Variant Support Methods</a></h2>
+
+  <p><a name="A16">VBSEval(sCode, v1, v2, v3, v4) = Evaluate VBScript
+  code</a></p>
+
+  <p>VtArrayToJs(a) = Convert variant array to JScript</p>
+
+  <p>VtArrayToList(a) = Convert variant array to list</p>
+
+  <p>VtCopyDictionary(dItems) = Copy a dictionary</p>
+
+  <p>VtCopyList(lItems) = Copy a list</p>
+
+  <p>VtCreateDictionary() = Return a variant dictionary</p>
+
+  <p>VtCreateFileSystemObject() = Return a file system object</p>
+
+  <p>VtCreateHtmlFile() = Create a variant HTMLFile object</p>
+
+  <p>VtCreateInternetExplorerApplication() = Return an Internet
+  Explorer object</p>
+
+  <p>VtCreateList() = Create a variant list object</p>
+
+  <p>VtCreateRecordSet() = Create a variant record set object</p>
+
+  <p>VtCreateRegExp() = Return a scripting RegExp object</p>
+
+  <p>VtCreateShellApplication() = Return a Shell.Application object</p>
+
+  <p>VtCreateStream() = Return an ADODB.Stream object</p>
+
+  <p>VtCreateVBScriptControl() = Return MSScriptControl.ScriptControl
+  object</p>
+
+  <p>VtCreateWebRequest() = Create web request object</p>
+
+  <p>VtCreateWScriptShell() = Return WScript.Shell object</p>
+
+  <p>VtCreateXmlDocument() = Return an XML document</p>
+
+  <p>VtDateToJs(dt) = Convert a variant date to JScript</p>
+
+  <p>VtDictionaryKeysToJs(d) = Convert variant array of dictionary keys
+  to JScript array</p>
+
+  <p>VtDictionaryKeysToList(d) = Convert variant array of dictionary
+  keys to list</p>
+
+  <p>VtDictionaryToJs(d) = Convert a variant dictionary to JScript</p>
+
+  <p>VtDictionaryToXml(dItems, sFile) = Save dictionary to XML file</p>
+
+  <p>VtGetWMIObject() = Get WMI object</p>
+
+  <p>VtInitDictionary(vValue) = Create a variant dictionary and
+  initialize it with a single key/value pair</p>
+
+  <p>VtInitXmlDocument(sXml) = Create and initialize an Xml document
+  with a string of XML</p>
+
+  <p>VtListFilterByExtension(lPaths, lExtensions) = Get a subset from a
+  list of paths that match an extension</p>
+
+  <p>VtListFilterByRegExp(lItems, sMatch, bIgnoreCase) = Return list of
+  matches of a regular expression</p>
+
+  <p>VtListFilterByWildcard(lItems, sMatch) = Return list of matches of
+  a wildcard filter expression</p>
+
+  <p>VtListGetExtensions(lPaths) = Get a list of extensions from a list
+  of paths, converting to lower case, removing duplicates, and
+  sorting</p>
+
+  <p>VtListToJs(l) = Convert variant list to JScript array</p>
+
+  <p>VtListToString(lItems, sDelimiter) = Convert a list to a string
+  with a specified delimiter</p>
+
+  <p>VtSleep(iMilliseconds) = Sleep iMilliseconds</p>
+
+  <p>VtStreamToFile(aBytes, sFile) = Save a variant byte array to a
+  binary file</p>
+
+  <p>VtTrim(sText) = Trim space from both ends of a string</p>
+
+  <p>VtTypeName(vVariant) = Get variant subtype</p>
+
+  <h2><a name="A17">Web Request Methods</a></h2>
+
+  <p><a name="A17">WebFetch(dParams) = Fetch files from web according
+  to specifications in dictionary of parameters</a></p>
+
+  <p>WebListDownload(lUrls, sFolder, bUnique) = Download a list of
+  URLs, specifying folder and whether to ensure unique file names</p>
+
+  <p>WebRequest(sType, sUrl, dData, dHeaders, sUser, sPassword) = Send
+  a web request and return the response</p>
+
+  <p>WebRequestGet(sUrl, dData, dHeaders, sUser, sPassword) = Send a
+  get request</p>
+
+  <p>WebRequestGetToFile(sUrl, dData, dHeaders, sUser, sPassword,
+  sFile) = Send a get request and save response to file</p>
+
+  <p>WebRequestGetToString(sUrl, dData, dHeaders, sUser, sPassword) =
+  Send a get request and return response as string</p>
+
+  <p>WebRequestHead(sUrl, dData, dHeaders, sUser, sPassword) = Send a
+  head request</p>
+
+  <p>WebRequestHeader(sUrl, sHeader) = Get response header</p>
+
+  <p>WebRequestPost(sUrl, dData, dHeaders, sUser, sPassword) = Send a
+  post request</p>
+
+  <p>WebRequestPostToFile(sUrl, dData, dHeaders, sUser, sPassword,
+  sFile) = Send a post request and save response to file</p>
+
+  <p>WebRequestPostToString(sUrl, dData, dHeaders, sUser, sPassword) =
+  Send a post request and return response as string</p>
+
+  <p>WebRequestToFile(sType, sUrl, dData, dHeaders, sUser, sPassword,
+  sFile) = Save web resource to file</p>
+
+  <p>WebRequestToString(sType, sUrl, dData, dHeaders, sUser, sPassword)
+  = Return web resource as string</p>
+
+  <p>WebUrlContentEncoding(sUrl) = Get encoding of a web resource</p>
+
+  <p>WebUrlContentLanguage(sUrl) = Get natural language code of a web
+  resource</p>
+
+  <p>WebUrlContentLength(sUrl) = Get content length of a web
+  resource</p>
+
+  <p>WebUrlContentLocation(sUrl) = Get redirected location of a web
+  resource</p>
+
+  <p>WebUrlContentType(sUrl) = Get content type of a web resource</p>
+
+  <p>WebUrlDownloadPath(sUrl, sFolder, bUnique) = /Get file from URL,
+  trying various techniques</p>
+
+  <p>WebUrlFileName(sUrl) = Get suggested file name of a web
+  resource</p>
+
+  <p>WebUrlIsHtml(sUrl) = Test whether content type is text/html</p>
+
+  <p>WebUrlLastModified(sUrl) = Get last modification time stamp of a
+  web resource</p>
+
+  <p>WebUrlServer(sUrl) = Get server name and version</p>
+
+  <p>WebUrlToFile(sUrl, sFile) = Save web resource to file</p>
+
+  <p>WebUrlToString(sUrl) = Return web resource as string</p>
+
+  <p>WebUrlToXml(sUrl) = Return web resource as XML document</p>
+
+  <h2><a name="A18">XML Parsing Methods</a></h2>
+
+  <p><a name="A18">XmlAppendElement(oParent, sName, sValue) = Append
+  element to a node</a></p>
+
+  <p>XmlCreateElement(oNode, sName, sValue) = Create an XML element</p>
+
+  <p>XmlCreateFile(sFile) = Create a root XML file</p>
+
+  <p>XmlEnsureGetNode(sFile, sPath) = Return a node, creating preceding
+  elements if necessary</p>
+
+  <p>XmlEnsureOpenFile(sFile) = Open an XML file, creating it if
+  necessary</p>
+
+  <p>XmlGetAttribute(sFile, sPath, sAttribute, sDefault) = Get an
+  attribute of a node</p>
+
+  <p>XmlGetNode(sFile, sPath) = Get a node</p>
+
+  <p>XmlGetNodeNames(sFile, sPath) = Get node names</p>
+
+  <p>XmlGetNodes(sFile, sPath) = Get a node list</p>
+
+  <p>XmlGetText(sFile, sPath, sDefault) = Get the text of a node</p>
+
+  <p>XmlGetValue(sFile, sPath, sDefault) = Get the value of a node</p>
+
+  <p>XmlOpenFile(sFile) = Open an XML file</p>
+
+  <p>XmlRemoveAttribute(sFile, sPath, sAttribute) = Remove an
+  attribute</p>
+
+  <p>XmlRemoveNode(sFile, sPath) = Remove a node</p>
+
+  <p>XmlRemoveNodes(sFile, sPath) = Remove a node collection</p>
+
+  <p>XmlSetAttribute(sFile, sPath, sAttribute, sText) = Set an
+  attribute</p>
+
+  <p>XmlSetText(sFile, sPath, sText) = Set text of an element</p>
+
+  <p>XmlSetValue(sFile, sPath, sValue) = Set a value</p>
+
+  <p>XmlToVtDictionary(sFile) = Convert XML file to variant
+  dictionary</p>
+
+  <h2><a name="A19">Change Log</a></h2>
+
+  <p><a name="A19">Version 1.1 on May 27, 2010<br>
+  Misc bug fixes. Added HtmlDecodeString method.</a></p>
+
+  <p>Version 1.0 on March 9, 2010<br>
+  Initial production release after beta testing phase.</p>
+
+  <h2><a name="A20">Development Notes</a></h2>
+
+  <p><a name="A20">I welcome feedback, which helps HomerJax improve
+  over time. The Latest version is available at<br></a><a href=
+  "http://EmpowermentZone.com/HomerJax.zip">http://EmpowermentZone.com/HomerJax.zip</a></p>
+
+  <p>Jamal Mazrui<br>
+  Email: jamal@EmpowermentZone.com<br>
+  Twitter Name: JamalMazrui</p>
+</body>
+</html>

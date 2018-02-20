@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Name file-label-embedded-slider</title>
+<style type="text/css">
+#fieldDiv {
+display: table;
+width: 80%;
+margin: 100px 10%;
+}
+.hidden {
+display: none;
+}
+</style>
+</head>
+<body>
+<div class="pageContainer">
+<div id="fieldDiv"><!--
+Start of W3C ARIA test case code. -->
+
+<input type="file" id="test" />
+  <label for="test">foo <input role="slider" type="range" value="5" min="1" max="10" aria-valuenow="5" aria-valuemin="1" aria-valuemax="10"> baz
+  </label>
+
+<!-- End of W3C ARIA test case code. --></div>
+
+</div>
+<br /><br /><br />
+<div>
+<button onclick="(function(){var a=document.createElement('script');a.type='text/javascript';a.src='https://accdc.github.io/visual-aria/visual-aria/roles.js';document.head.appendChild(a)})()"> Load Visual ARIA </button>
+<button onclick="document.getElementById('calcTextStr').innerHTML = getNames(document.getElementById('test'));"> Calculate Accessible Name and Description </button>
+<br />
+<textarea id="calcTextStr" readonly aria-label="Accessible Name and Description Calculation" title="Accessible Name and Description Calculation" style="width: 100%; height: 60px;"></textarea>
+</div>
+<script type="text/javascript" src="../Sample JavaScript Recursion Algorithm/recursion.js"></script>
+</body>
+</html>

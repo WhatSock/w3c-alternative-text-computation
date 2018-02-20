@@ -1,0 +1,642 @@
+HomerJax
+Version 1.1
+May 27, 2010
+Copyright 2009 - 2015 by Jamal Mazrui
+GNU Lesser General Public License (LGPL)
+
+
+----------
+
+Contents
+
+Introduction
+Installation
+COM Exchange Format
+Dialog Methods
+File Methods
+Folder Methods
+HTML Parsing Methods
+JavaScript Support Methods
+Path Methods
+Process Methods
+Regular Expression Methods
+Registry Methods
+Shell Methods
+String Methods
+URL Parsing Methods
+Variant Support Methods
+Web Request Methods
+XML Parsing Methods
+Change Log
+Development Notes
+----------
+
+Introduction
+
+The word "Homer" is a brand name I sometimes use for developer tools I create.  HomerJax is a library of convenience functions for accessing Internet resources.  It is written primarily in JScript, the Microsoft version of JavaScript, and is dependent on several COM servers distributed with Windows.  The word "Jax" derives from Ajax, which originally meant "Asynchronous JavaScript and XML."  Ajax technologies focus on building dynamic user interfaces in web browsers.  HomerJax functions use some of these core technologies, but focus on reading, interpreting, and writing data from the Internet.
+
+Since the Internet is a great source of accessible information for people with visual disabilities who cannot readily read the printed word, my hope is that this library makes it easier for developers, including blind ones like myself, to build applications that take advantage of new social networking sites such as Twitter, FaceBook, and many others.  I intend for HomerJax to be accessible via various programming environments, including the Windows Script Host, screen reader scripting languages, and other programming languages via a COM server interface.
+
+HomerJax methods are divided into categories indicated by a prefix at the beginning of their names:  Dialog, File, Folder, Html, Js, Path, RegExp, Registry, String, Vt, Web, and Xml.  By convention, HomerJax variable names use lower case prefixes to indicate the data type:  s for string, i for integer, n for floating point number, l for list, d for dictionary, and o for other COM object.  Method and variable names use upper camel case (like the .NET Framework), e.g., XmlGetValue rather than XMLGetValue.  JavaScript is a case-sensitive language, so methods need to be called with appropriate capitalization.
+
+An example of programming with HomerJax is in the JAWS scripts for Firefox, called Firefox Max or FxMax, available at
+http://EmpowermentZone.com/FxMax.exe
+
+or .zip
+
+----------
+
+Installation
+
+HomerJax is a COM server defined as a "Windows script component" in the file HomerJax.wsc.  Unlike most COM servers, a client object may be instantiated without the need to have the COM server registered on the computer (in the Windows registry), which requires administrative rights.  This is done via the GetObject function of a programming language that supports COM automation.  For example, the syntax in VBScript is
+
+Set oJax = GetObject("script:" & sFile)
+
+where sFile is a string containing the complete path of the HomerJax.wsc file.
+
+The technology behind such a COM server is explained in the following article:
+
+Doctor Scripto's Script Shop: Windows Script Components Have a COM-ing Effect
+http://technet.microsoft.com/en-us/library/ee692823.aspx
+
+If programming code results in an error when trying to instantiate a HomerJax object, the cause is probably related to some DLLs of the Windows Script Host not being properly registered.  This condition seems to happen with some Windows XP systems.  Applying the suggestions in the following article generally resolves the problem:
+
+When I run a script in Windows Script, I receive an error message:  "Library not registered"
+http://support.microsoft.com/kb/949140
+
+For convenient reference, these articles are also included in the HomerJax archive.
+
+The HomerJax COM server may also be registered on the system, thereby enabling use of the CreateObject function.  At a command prompt, the following syntax may be used for registration:
+
+RegSvr32.exe file:\\sFile
+
+The following syntax could then be used in code:
+
+Set oJax = CreateObject("Homer.Jax")
+
+Subsequent sections of this documentation list methods that may be executed with a HomerJax object.
+----------
+
+COM Exchange Format
+
+The Component Object Model (COM) is a set of Windows standards by which different programming languages and applications can communicate.  COM uses a flexible data type called a variant, which can be an individual value, array of values, or complex object with methods, properties, and events.  In general, any COM client can use string, numeric, and COM objects as the data types of parameters or return values.  Some, however, cannot use arrays.  COM exchange format is intended to support collections, as well as primitive data types, for use by any COM client.  Rather than an array, a list COM object is used from the .NET Framework (any version).  A COM object dictionary is also used from the Windows Script Host.
+
+HomerJax includes a method called JsToVt, which converts data in JSON format to variant types understood by VBScript (and any COM client language).  JavaScript arrays are converted to COM objects with the progID "System.Collections.ArrayList."  The methods and properties of this object are documented at
+http://msdn.microsoft.com/en-us/library/system.collections.arraylist.aspx
+
+JavaScript objects, which are like dictionaries, are converted to COM objects with the progID "Scripting.Dictionary."  This object is documented at
+http://msdn.microsoft.com/en-us/library/x4k5wbx4(VS.85).aspx
+
+In Visual Basic and other languages, either of these types of object collections may be iterated with the "For Each" statement.  These objects have an "Item" method, which is the default COM method of the object, so syntax can succinctly referr to items without even using the "Item"  keyword (just using an integer element of a list or string key of a dictionary enclosed in parentheses).  The code of the demo program illustrates this in getting public messages from Twitter.
+
+HomerJax includes various methods for converting between JavaScript Object Notation (JSON), variant data types, and COM exchange format.  This provides much flexibility for accessing data on the Internet.
+----------
+
+Dialog Methods
+DialogBrowseForFolder(sFolder) = Specify a folder path
+
+DialogConfirm(sTitle, sMessage, sDefault) = Get choice from a standard Yes, No, or Cancel message box
+
+DialogInput(sTitle, sField, sValue) = Get input from a single edit box
+
+DialogShow(oTitle, oText) = Show a title and message
+
+----------
+
+File Methods
+
+FileCopy(sSource, sTarget) = Copy source to destination file, replacing if it exists
+
+FileDelete(sFile) = Delete a file if it exists, and test whether it is subsequently absent
+ either because it was successfully deleted or because it was!present in the first place
+
+FileExists(sFile) = Test whether File exists
+
+FileGetDate(sFile) = Get date of a file
+
+FileGetSize(sFile) = Get size of a file
+
+FileGetType(sFile) = Get file type
+
+FileIsUnicode(sFile) = Test whether file is Unicode
+
+FileIsUTF8(sFile) = Test whether file is UTF-8
+
+FileMove(sSource, sTarget) = Move source to destination file, replacing if it exists
+
+FileToString(sFile) = Get content of text file
+----------
+
+Folder Methods
+
+FolderCopy(sSource, sTarget) = Copy source to destination Folder, replacing if it exists
+
+FolderCreate(sFolder) = Create folder
+
+FolderDelete(sFolder) = Delete a Folder if it exists, and test whether it is subsequently absent
+ either because it was successfully deleted or because it was!present in the first place
+
+FolderExists(sFolder) = Test whether folder exists
+
+FolderGetDate(sFolder) = Get date of a Folder
+
+FolderGetSize(sFolder) = Get size of folder, summing the sizes of files and subfolders it contains
+
+FolderMove(sSource, sTarget) = Move source to destination Folder, replacing if it exists
+----------
+
+HTML Parsing Methods
+
+HtmlDecodeString(sText) = Decode a string from HTML or XML
+
+HtmlEncodeString(sText) = Encode a string for HTML or XML
+
+HtmlGetLinks(sUrl) = Get a list of two-item lists containing the URL and text of a link
+
+HtmlGetTableText(sUrl, iTable) = Get the text of an HTML table specified by number, or null for all of them
+
+HtmlGetText(sUrl, bAddHeader) = Get the text of an HTML page, optionally including the source URL at the top
+
+HtmlGetUrls(sUrl) = Get a list of URLs linked to a web page
+----------
+
+JavaScript Support Methods
+
+JsDictionaryToEncodedString(d) = Convert dictionary to string with http encoding
+
+JsDictionaryToVt(d) = Convert JScript dictionary to variant
+
+JsEval(sCode, o1, o2, o3, o4) = Evaluate sCode, optionally referencing up to 4 parameters of any type, and return the result
+
+JsInitArray(oValue, iLength) = Initialize a JScript array
+
+JsInspectObject(sName, oValue) = Report on type of object and its subobjects
+
+JsIsBlank(sText) = Test if string is empty or white space
+
+JsIsMute(o) = test for empty string
+
+JsIsNull(o) = Test for null
+
+JsIsObject(o) = Test for object
+
+JsIsUndefined(o) = Test whether object is undefined
+
+JsMin(i, j) = Return minimum of two numbers
+
+JSNumber(o) = Convert to JScript number
+
+JsObjectToVt(oValue) = Convert JScript object to variant
+
+JsPrint(o) = Print to screen using console mode of Windows Script Host
+
+JsPrintObject(sName, oValue) = Print type of object and its subobjects
+
+JsSplit(sText, sDelimiter) = Split but ensure an empty array for empty text
+
+JsSplitLines(sText) = JsSplit by line feeds after chomping
+
+JsString(o) = Convert to a JScript string
+
+JsToVt(sJs) = Convert string in JavaScript Object Notation to COM exchange format
+----------
+
+Path Methods
+
+PathCombine(sFolder, sName) = Combine folder and name to form a valid path
+
+PathCreateTempFolder() = Create temporary folder and return its full path
+
+PathExists(sPath) = Test whether path exists
+
+PathGetBase(sPath) = Get base/root name of a file or folder
+
+PathGetCurrentDirectory() = Get current directory of active process
+
+PathGetExtension(sPath) = Get extention of file or folder
+
+PathGetFolder(sPath) = Get the parent folder of a file or folder
+
+PathGetInternetCacheFolder() = Get Windows folder for temporary Internet files
+
+PathGetLong(sPath) = Get long name of file or folder
+
+PathGetName(sPath) = Get the file or folder name at the end of a path
+
+PathGetShort(sPath) = Get short path (8.3 style) of a file or folder
+
+PathGetSpec(sDir, sWildcards, sFlags) = Get a list of paths, specifying folder, wild card pattern, and sort order
+
+PathGetTempFile() = Get full path of a temporary file
+
+PathGetTempFolder() = Get Windows folder for temporary files
+
+PathGetTempName() = Get Name for temporary file or folder
+
+PathGetValid(sDir, sBase, sExt, bUnique) = Make a valid file name from a string, optionally unique
+
+PathSetCurrentDirectory(sDir) = Set current directory of active process, and return previously current directory
+----------
+
+Process Methods
+
+ProcessGetModules() = Return collection of process modules
+
+ProcessIsModuleActive(sName) = Test if process is active in memory
+
+ProcessQueryName(sName) = Returns a collection of 0 or more Win32_Process objects
+
+ProcessTerminateModule(sName) = Terminate a process by name
+
+
+
+----------
+
+Regular Expression Methods
+
+RegExpContains(sText, sMatch, bIgnoreCase) = Get Array containing the starting index and text of the first match of a regular expression
+where sText is the string to search
+sMatch is the regular expression to match
+bIgnoreCase indicates whether capitalization matters
+
+RegExpContainsLast(sText, sMatch, bIgnoreCase) = Get list containing the starting index and text of the last match of a regular expression
+where sText is the string to search
+sMatch is the regular expression to match
+bIgnoreCase indicates whether capitalization matters
+
+RegExpCount(sText, sMatch, bIgnoreCase) = Count matches of a regular expression
+where sText is the string to search
+sMatch is the regular expression to match
+bIgnoreCase indicates whether capitalization matters
+
+RegExpExtract(sText, sMatch, bIgnoreCase) = Get list containing matches of a regular expression
+where sText is the string to search
+sMatch is the regular expression to match
+bIgnoreCase indicates whether capitalization matters
+
+RegExpReplace(sText, sMatch, sReplace, bIgnoreCase) = Replace text matching a regular expression
+where sText is the string to search
+sMatch is the regular expression to match
+sReplace is the replacement text
+bIgnoreCase indicates whether capitalization matters
+
+RegExpTest(sText, sMatch, bIgnoreCase) = Test match of a regular expression
+where sText is the string to search
+sMatch is the regular expression to match
+bIgnoreCase indicates whether capitalization matters
+----------
+
+Registry Methods
+
+RegistryGetString(iRootKey, sSubKey, sValueName) = Get a registry string
+
+RegistryRead(sKey) = Get a string from the registry
+
+RegistrySetString(iRootKey, sSubKey, sValueName, sValueData) = Set a registry string
+
+RegistryWrite(sKey, sValue) = Write a string to the registry
+
+
+----------
+
+Shell Methods
+
+ShellCreateShortcut(sFile, sTargetPath, sWorkingDirectory, iWindowStyle, sHotkey) = Create a .lnk or .url file
+
+ShellExec(sCommand) = Run a console mode command and return its standard output
+
+ShellExecute(sFile, sParams, sFolder, sVerb, iWindowStyle) = Execute a command with a verb like RunAs
+
+ShellExpandEnvironmentVariables(sText) = Replace environment variables with their values
+
+ShellGetEnvironmentVariable(sVariable) = Get the value of an environment variable
+
+ShellGetShortcutTargetPath(sFile) = Get the target path of a shortcut file
+
+ShellGetSpecialFolder(vFolder) = Get a special Windows folder
+
+ShellInvokeVerb(sPath, sVerb) = Invoke a verb on a file or folder
+
+ShellOpen(sPath) = Open a file or folder with the default program associated with its type
+
+ShellOpenWith(sExe, sParam) = Open a program with a file
+
+ShellRun(sFile, iStyle, bWait) = Launch a program or file, indicating its window style && whether to wait before returning
+window styles:
+0 Hides the window && activates another window
+1 Activates && displays a window. If the window is minimized || maximized, the
+system restores it to its original size && position. This flag should be used
+when specifying an application for the first time
+2 Activates the window && displays it minimized
+3 Activates the window && displays it maximized
+4 Displays a window in its most recent size && position. The active window
+remains active
+5 Activates the window && displays it in its current size && position
+6 Minimizes the specified window && activates the next top-level window in the Z
+order
+7 Displays the window as a minimized window. The active window remains active
+8 Displays the window in its current state. The active window remains active
+9 Activates && displays the window. If it is minimized || maximized, the system
+restores it to its original size && position. An application should specify
+this flag when restoring a minimized window
+10 Sets the show state based on the state of the program that started the
+application
+
+ShellRunCommandPrompt(sDir) = Open a command prompt in the directory specified
+
+ShellRunExplorerWindow(sDir) = Open Windows Explorer in the directory specified
+
+ShellWait(sPath) = Run a program and wait for it to return
+----------
+
+String Methods
+
+StringAppendToFile(sText, sFile, sDivider) = Append string to File, omitting divider if the first one
+
+StringChomp(sText) = Chop \n for both ends of a string
+
+StringChopLeft(sText, iCount) = Remove iCount characters from left of sText
+
+StringChopRight(sText, iCount) = Remove iCount characters from Right of sText
+
+StringContains(sText, sMatch, bIgnoreCase) = Test if a string is contained in another
+
+StringConvertToMacLineBreak(sText) = Convert to Macintosh line break, \r
+
+StringConvertToUnixLineBreak(sText) = Convert to Unix line break, \n
+
+StringConvertToWinLineBreak(sText) = Convert to standard Windows line break, \r\n
+
+StringCount(sText, sMatch) = Count occurrences of a string within another string
+
+StringEndsWith(sText, sSuffix, bIgnoreCase) = Test whether first string ends with second one
+
+StringEqual(s1, s2) = Test if two strings are exactly equal
+
+StringEquiv(s1, s2) = Test whether two strings are the same except for capitalization
+
+StringGetASCII(sText) = Get space delimited ASCII codes for characters in string
+
+StringIsUnicode(sText) = Test whether a string is Unicode
+
+StringIsUTF8(sText) = Test whether a string is UTF-8
+
+StringLeft(sText, iCount) = Return leftmost characters of a string
+
+StringLength(sText) = Return length of a string
+
+StringLower(sText) = Convert string to lower case
+
+StringPlural(sItem, iCount) = Return singular or plural form of a string, depending on whether count equals one
+
+StringPrependUTF8(sText) = Add UTF8 prefix to string
+
+StringQuote(sText) = Quote a string
+
+StringReplace(sText, sMatch, sReplace, bIgnoreCase) = Replace text
+
+StringReplaceAll(sText, sMatch, sReplace, bIgnoreCase) = Replace all occurrences of a string within another
+
+StringRight(sText, iCount) = Return rightmost characters of a string
+
+StringSlice(sText, iStart, iEnd) = return sText.slice(iStart, iEnd)
+
+StringStartsWith(sText, sPrefix, bIgnoreCase) = Test whether first string starts with second one
+
+StringToFile(sText, sFile) = Saves string to text file, replacing if it exists
+
+StringToList(sText, sDelimiter) = Convert string with specified delimiter to list
+
+StringTrim(sText) = Trim white space from both ends of a string
+
+StringTrimLeft(sText) = Trim white space from left end of a string
+
+StringTrimRight(sText) = Trim white space from right end of a string
+
+StringUnquote(sText) = Unquote a string
+
+StringUpper(sText) = Convert string to upper case
+
+StringWrap(sText, iMaxLine) = var aLines, aWords
+----------
+
+URL Parsing Methods
+
+UrlCreate(sProtocol, sHost, sPath, sQuery) = Create a URL from components
+
+UrlGetBaseDomain(sUrl) = Get base domain of a URL
+
+UrlGetExtension(sUrl) = Get extension of a URL
+
+UrlGetFile(sUrl) = Get file of a URL
+
+UrlGetFolder(sUrl) = Get folder of a URL
+
+UrlGetFragment(sUrl) = Get fragment of a URL
+
+UrlGetHost(sUrl) = Get subdomain and domain of a URL
+
+UrlGetPath(sUrl) = Get path of a URL
+
+UrlGetPathPlus(sUrl) = Get path and fragment or query of a URL
+
+UrlGetPrePath(sUrl) = Get part of URL before path
+
+UrlGetProtocol(sUrl) = Get protocol of URL
+
+UrlGetQuery(sUrl) = Get query of URL
+
+UrlGetSubdomain(sUrl) = Get subdomain of a URL
+
+UrlNormalize(sUrl, sBase) = Normalize a URL for comparison
+----------
+
+Variant Support Methods
+
+VBSEval(sCode, v1, v2, v3, v4) = Evaluate VBScript code
+
+VtArrayToJs(a) = Convert variant array to JScript
+
+VtArrayToList(a) = Convert variant array to list
+
+VtCopyDictionary(dItems) = Copy a dictionary
+
+VtCopyList(lItems) = Copy a list
+
+VtCreateDictionary() = Return a variant dictionary
+
+VtCreateFileSystemObject() = Return a file system object
+
+VtCreateHtmlFile() = Create a variant HTMLFile object
+
+VtCreateInternetExplorerApplication() = Return an Internet Explorer object
+
+VtCreateList() = Create a variant list object
+
+VtCreateRecordSet() = Create a variant record set object
+
+VtCreateRegExp() = Return a scripting RegExp object
+
+VtCreateShellApplication() = Return a Shell.Application object
+
+VtCreateStream() = Return an ADODB.Stream object
+
+VtCreateVBScriptControl() = Return MSScriptControl.ScriptControl object
+
+VtCreateWebRequest() = Create web request object
+
+VtCreateWScriptShell() = Return WScript.Shell object
+
+VtCreateXmlDocument() = Return an XML document
+
+VtDateToJs(dt) = Convert a variant date to JScript
+
+VtDictionaryKeysToJs(d) = Convert variant array of dictionary keys to JScript array
+
+VtDictionaryKeysToList(d) = Convert variant array of dictionary keys to list
+
+VtDictionaryToJs(d) = Convert a variant dictionary to JScript
+
+VtDictionaryToXml(dItems, sFile) = Save dictionary to XML file
+
+VtGetWMIObject() = Get WMI object
+
+VtInitDictionary(vValue) = Create a variant dictionary and initialize it with a single key/value pair
+
+VtInitXmlDocument(sXml) = Create and initialize an Xml document with a string of XML
+
+VtListFilterByExtension(lPaths, lExtensions) = Get a subset from a list of paths that match an extension
+
+VtListFilterByRegExp(lItems, sMatch, bIgnoreCase) = Return list of matches of a regular expression
+
+VtListFilterByWildcard(lItems, sMatch) = Return list of matches of a wildcard filter expression
+
+VtListGetExtensions(lPaths) = Get a list of extensions from a list of paths, converting to lower case, removing duplicates, and sorting
+
+VtListToJs(l) = Convert variant list to JScript array
+
+VtListToString(lItems, sDelimiter) = Convert a list to a string with a specified delimiter
+
+VtSleep(iMilliseconds) = Sleep iMilliseconds
+
+VtStreamToFile(aBytes, sFile) = Save a variant byte array to a binary file
+
+VtTrim(sText) = Trim space from both ends of a string
+
+VtTypeName(vVariant) = Get variant subtype
+----------
+
+Web Request Methods
+
+WebFetch(dParams) = Fetch files from web according to specifications in dictionary of parameters
+
+WebListDownload(lUrls, sFolder, bUnique) = Download a list of URLs, specifying folder and whether to ensure unique file names
+
+WebRequest(sType, sUrl, dData, dHeaders, sUser, sPassword) = Send a web request and return the response
+
+WebRequestGet(sUrl, dData, dHeaders, sUser, sPassword) = Send a get request
+
+WebRequestGetToFile(sUrl, dData, dHeaders, sUser, sPassword, sFile) = Send a get request and save response to file
+
+WebRequestGetToString(sUrl, dData, dHeaders, sUser, sPassword) = Send a get request and return response as string
+
+WebRequestHead(sUrl, dData, dHeaders, sUser, sPassword) = Send a head request
+
+WebRequestHeader(sUrl, sHeader) = Get response header
+
+WebRequestPost(sUrl, dData, dHeaders, sUser, sPassword) = Send a post request
+
+WebRequestPostToFile(sUrl, dData, dHeaders, sUser, sPassword, sFile) = Send a post request and save response to file
+
+WebRequestPostToString(sUrl, dData, dHeaders, sUser, sPassword) = Send a post request and return response as string
+
+WebRequestToFile(sType, sUrl, dData, dHeaders, sUser, sPassword, sFile) = Save web resource to file
+
+WebRequestToString(sType, sUrl, dData, dHeaders, sUser, sPassword) = Return web resource as string
+
+WebUrlContentEncoding(sUrl) = Get encoding of a web resource
+
+WebUrlContentLanguage(sUrl) = Get natural language code of a web resource
+
+WebUrlContentLength(sUrl) = Get content length of a web resource
+
+WebUrlContentLocation(sUrl) = Get redirected location of a web resource
+
+WebUrlContentType(sUrl) = Get content type of a web resource
+
+WebUrlDownloadPath(sUrl, sFolder, bUnique) = /Get file from URL, trying various techniques
+
+WebUrlFileName(sUrl) = Get suggested file name of a web resource
+
+WebUrlIsHtml(sUrl) = Test whether content type is text/html
+
+WebUrlLastModified(sUrl) = Get last modification time stamp of a web resource
+
+WebUrlServer(sUrl) = Get server name and version
+
+WebUrlToFile(sUrl, sFile) = Save web resource to file
+
+WebUrlToString(sUrl) = Return web resource as string
+
+WebUrlToXml(sUrl) = Return web resource as XML document
+----------
+
+XML Parsing Methods
+
+XmlAppendElement(oParent, sName, sValue) = Append element to a node
+
+XmlCreateElement(oNode, sName, sValue) = Create an XML element
+
+XmlCreateFile(sFile) = Create a root XML file
+
+XmlEnsureGetNode(sFile, sPath) = Return a node, creating preceding elements if necessary
+
+XmlEnsureOpenFile(sFile) = Open an XML file, creating it if necessary
+
+XmlGetAttribute(sFile, sPath, sAttribute, sDefault) = Get an attribute of a node
+
+XmlGetNode(sFile, sPath) = Get a node
+
+XmlGetNodeNames(sFile, sPath) = Get node names
+
+XmlGetNodes(sFile, sPath) = Get a node list
+
+XmlGetText(sFile, sPath, sDefault) = Get the text of a node
+
+XmlGetValue(sFile, sPath, sDefault) = Get the value of a node
+
+XmlOpenFile(sFile) = Open an XML file
+
+XmlRemoveAttribute(sFile, sPath, sAttribute) = Remove an attribute
+
+XmlRemoveNode(sFile, sPath) = Remove a node
+
+XmlRemoveNodes(sFile, sPath) = Remove a node collection
+
+XmlSetAttribute(sFile, sPath, sAttribute, sText) = Set an attribute
+
+XmlSetText(sFile, sPath, sText) = Set text of an element
+
+XmlSetValue(sFile, sPath, sValue) = Set a value
+
+XmlToVtDictionary(sFile) = Convert XML file to variant dictionary
+----------
+
+Change Log
+
+Version 1.1 on May 27, 2010
+Misc bug fixes.  Added HtmlDecodeString method.
+
+Version 1.0 on March 9, 2010
+Initial production release after beta testing phase.
+
+----------
+
+Development Notes
+
+I welcome feedback, which helps HomerJax improve over time.  The Latest version is available at
+http://EmpowermentZone.com/HomerJax.zip
+
+Jamal Mazrui
+Email: jamal@EmpowermentZone.com
+Twitter Name: JamalMazrui

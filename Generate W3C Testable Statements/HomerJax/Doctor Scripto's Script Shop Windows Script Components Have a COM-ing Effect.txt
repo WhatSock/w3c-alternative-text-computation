@@ -1,0 +1,662 @@
+From the web page
+http://technet.microsoft.com/en-us/library/ee692823.aspx
+
+Doctor Scripto's Script Shop 
+Windows Script Components Have a COM-ing Effect 
+By The Microsoft Scripting Guys
+
+There's a timeworn joke about a boy who visits his grandfather in a retirement 
+home for comedians. Grandpa takes him into a lounge where a bunch of old guys 
+are sitting around quietly smoking stogies. Suddenly, somebody calls out "47," 
+and everybody cracks up. Then another one says "102" and they all groan.
+The boy is puzzled, so he asks his grandad what's going on. "Well, sonny boy," 
+the old man says, "for years we've spent all our time sitting around telling 
+jokes. And by now we've all heard each others' jokes so many times, we don't 
+need to tell the whole joke any more: we just have a number for each joke."
+So the boy screws up his courage and pipes up: "5." Stony silence. And his 
+grandfather whispers to him, "Nice try, sonny boy, but it's all in the 
+delivery."
+This ancient excuse for humor probably came from the Borscht Belt via a Woody 
+Allen movie or some place like that  unlike the old comics, the memory for 
+details of at least one of the Scripting Guys is not as sharp as it used to be. 
+Actually, though, the joke reminded us of some code we've been playing around 
+with. What was that now? Wait a minute, it's on the tip of my tongue. Oh, yeah 
+Windows Script Components.
+On This Page
+Typing or Type Library? 
+WSC Me Away 
+Whatever You Do, Keep COM 
+What's In It For Me? 
+Creating Script Components 
+Calling a Script Component in a Script 
+Post-Script 
+
+
+
+Typing or Type Library?
+Do you like to type? The Scripting Guys do. There's no feeling quite like firing 
+off a long command line at breakneck speed, hitting that Enter button, and 
+watching something impressive happen.
+ 
+
+Still, when you're writing scripts typing gets old fast. Of course, most of us 
+cut and paste a lot, but when we do, it's easy to inadvertently miss a line or 
+to include extra lines or characters, botch line endings, and otherwise 
+introduce infuriating errors into our scripts.
+Have you ever had some chunks of code that you find yourself typing or pasting 
+over and over again? At some point you might put them into a separate file so 
+you can copy them more easily, or maybe into a code snippet if your scripting 
+environment offers them.
+Wouldn't it be handy to be able to give that piece of code a label so you could 
+call it without actually adding all the lines to your script? Many system-level 
+programming languages have a way to do this  things like the #include 
+preprocessor directive in C. But in scripting it's been one of those 
+nice-to-haves that no one seemed to get around to implementing.
+Funny thing is, while it's not quite as concise as "47," a scripting "include" 
+has been part of Windows Script all along.
+Top of page 
+
+WSC Me Away
+A Windows Script Component is just an XML file with a particular schema and a 
+file extension of ".wsc". It can contain properties, functions and subroutines 
+written in script.
+Functionally, you can think of it as a text file impersonating a Component 
+Object Model (COM) component. You heard us right: you write a simple text file 
+using XML that wraps script code: VBScript, JScript, or any other WSH-compatible 
+language. Then you can register the file, or component, and call its contents  
+from scripting languages to system-level programming languages  like any other 
+COM component. You can also call it without registering it, which we'll get to a 
+bit later.
+What's going on here?
+If you've done much Windows system administration scripting, you've probably 
+encountered enough different COM scripting libraries to get a practical idea of 
+how to work with them. When you use a line of code like this:
+Copy Code 
+
+Set objWMIService = GetObject("winmgmts:")
+
+
+
+you're invoking the hidden powers of the Windows Management Instrumentation 
+(WMI) COM scripting library, which resides within chunks of C++ code deep within 
+the entrails of the Windows operating system.
+WMI is a service that's already running, so you use the VBScript GetObject 
+method to bind to the WMI service COM object with the winmgmts: moniker. Once 
+you have connected to WMI, you can use it to call any of its methods or 
+properties and work with any of the thousand or more WMI classes.
+Similarly, when you use:
+Copy Code 
+
+Set objExcel = CreateObject("Excel.Application")
+
+
+
+you're creating an instance of and getting a reference to the Excel COM 
+component, using it's programmatic identifier (progID), Excel.Application. With 
+this simple act, you are placing the considerable capabilities of the Excel 
+scripting object model at the disposal of your script. Here, too, the code 
+you're calling into is headquartered somewhere within the vast Office binaries.
+Experienced scripters will probably have seen these two lines many times, so 
+they should have some idea of what COM can do for them.
+Top of page 
+
+Whatever You Do, Keep COM
+While the top level of COM functionality may be familiar, beneath the hood COM 
+still works in mysterious ways for most of us. But it's really not that 
+confusing.
+According to Doctor Scripto, COM is a sort of trade agreement for applications. 
+Only instead of committing to certain levels of tariffs or subsidies, when 
+programs use COM they agree to implement certain interfaces and operate in 
+certain ways. These standards let code modules that have signed the COM treaty 
+communicate with other signatory code modules with some confidence in what they 
+will find there and what they can do with it.
+System-level languages such as C++ enable you to write your own COM components 
+as parts of executables or DLLs and make them available to other applications 
+and scripts. Windows Script Components let scripts get into the COM market as 
+producers as well as consumers.
+Then again, maybe this really is confusing. Doctor Scripto has a talent for zen 
+koans that leave you scratching your head, so we're not going to let him belabor 
+the point any further here. COM has been explained elsewhere in exquisite 
+detail, so we're going to refer you there.
+If COM is new to you, a good place to start is the discussion of COM objects in 
+the "VBScript Primer" chapter of the Windows 2000 Scripting Guide. For a 
+technical discussion targeted at developers, see "The Component Object Model: A 
+Technical Overview" on MSDN.
+We encourage you to pursue the backstory of COM at your leisure (What? You don't 
+have any leisure?) But for now, let's return to a question that you must be 
+asking by now.
+Top of page 
+
+What's In It For Me?
+So why would a scripter want to create and use Windows Script Components?
+When we find that we're repeating the same code in a lot of scripts, Windows 
+Script Components can offer a convenient and powerful solution. And for an 
+organization, script components provide a way to standardize useful script 
+modules and share them in a way that allows all the scripts used in that 
+organization to call them.
+For example, you could use script components to encapsulate frequently used 
+code, such as code for reading and writing text files or sorting arrays and 
+collections. WSC files are also useful for wrapping enumerations and effectively 
+imitating a type library, which you can't access with scripting languages.
+If you have any scripts or chunks of script code that you'd like to share with 
+other scripts and applications, Windows Script Components may be worth a try.
+As always, a code example is worth ten thousand words (inflation), so let's look 
+at how to create script components and use them in scripts.
+Note 
+There is an alternative way to do something similar to what script components 
+do. You can read a script file into a string with the Script Runtime 
+FileSystemObject and then use the VBScript Execute statement to call into that 
+script code. It takes a few more lines in the calling script, but you don't have 
+to create an XML file into which to put the script. This technique is discussed 
+in the Sesame Script column "Functions, Subroutines, and How to Call Them From 
+Other Scripts."
+Top of page 
+
+Creating Script Components
+Were going to touch on the highlights of creating a Windows Script Component 
+file. But for the full monty, we refer you to the Windows Script Component 
+documentation on MSDN, which walks you through the process of creating and using 
+script components and provides reference documentation.
+To start creating your .wsc file, there's a convenient tool called Windows 
+Script Component Wizard that's a free download from MSDN. It presents a series 
+of questions and then creates a skeleton .wsc file based on your answers. It 
+also provides you with a globally unique identifier (GUID), which COM requires 
+as a class identifier if you are going to register your component.
+The file contains:
+  Information needed for registering the component, including its GUID and the 
+  programmatic ID (progID) that can be used to call it in scripts
+  A list of public methods (with their parameters), properties and events 
+  exposed by the component
+  The script code that implements these methods, properties and events.
+Listing 1 shows the code for a component, which you can copy and paste into a 
+file. Our example script in Listing 2 assumes the file path is 
+c:\scripts\wsc\files-fso.wsc. An explanation follows.
+Listing 1: Files-fso.wsc - ScriptingGuys.FSO.FileOperations.WSC component file 
+Copy Code 
+
+<?xml version="1.0"?>
+
+<package>
+
+<component id="ScriptingGuys.FSO.FileOperations.WSC">
+
+  <comment>
+    This component enables scripts to call procedures that use the 
+    FileSystemObject, part of Script Runtime, to perform text file operations:
+    reading from, writing to and copying.
+  </comment>
+
+<?component error="true" debug="true"?>
+
+<registration
+  description="ScriptingGuys FileSystemObject File Operations Components"
+  progid="ScriptingGuys.FSO.FileOperations.WSC"
+  version="1.00"
+  classid="{052cb1e5-6b07-4f5c-abed-9c3f7e2cc31b}"
+  remotable="True">
+
+  <script language="VBScript">
+  <![CDATA[
+
+    strComponent = "ScriptingGuys FileSystemObject File Operations Components"
+
+'******************************************************************************
+
+    Function Register
+      MsgBox strComponent & " - Windows Script Component registered."
+    End Function
+
+'******************************************************************************
+
+    Function Unregister
+      MsgBox strComponent & " - Windows Script Component unregistered."
+    End Function
+
+'******************************************************************************
+
+  ]]>
+  </script>
+
+</registration>
+
+<public>
+
+  <method name="ReadTextFile">
+    <parameter name="strInputFile"/>
+  </method>
+  <method name="WriteTextFile">
+    <parameter name="strFileName"/>
+    <parameter name="strOutput"/>
+  </method>
+  <method name="CopyFile">
+    <parameter name="strSource"/>
+    <parameter name="strTarget"/>
+  </method>
+
+</public>
+
+<script language="VBScript">
+<![CDATA[
+
+'******************************************************************************
+
+Function ReadTextFile(strInputFile)
+'Reads text file and returns array with one element for each line.
+'On error returns string with error message.
+
+On Error Resume Next
+
+Const FOR_READING = 1
+Dim arrLines()
+
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+If Not objFSO.FileExists(strInputFile) Then
+  ReadTextFile = "Input text file " & strInputFile & " not found."
+  Exit Function
+End If
+
+Set objTextStream = objFSO.OpenTextFile(strInputFile, FOR_READING)
+If Err <> 0 Then
+  ReadTextFile = "Unable to open input text file " & strInputFile & vbCrLf & _
+   "Error: " & Err.Number & vbCrLf & Err.Description
+  Err.Clear
+ElseIf objTextStream.AtEndOfStream Then
+  ReadTextFile = "Input text file " & strInputFile & " is empty."
+Else
+  Do Until objTextStream.AtEndOfStream
+    intLineNo = objTextStream.Line
+    ReDim Preserve arrLines(intLineNo - 1)
+    arrLines(intLineNo - 1) = objTextStream.ReadLine
+  Loop
+  ReadTextFile = arrLines
+End If
+
+objTextStream.Close
+
+End Function
+
+'******************************************************************************
+
+Function WriteTextFile(strFileName, strOutput)
+'Writes or appends data to text file.
+'On success returns 0, on failure returns error message.
+
+On Error Resume Next
+Const FOR_APPENDING = 8
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+If objFSO.FileExists(strFileName) Then
+  Set objTextStream = objFSO.OpenTextFile(strFileName, FOR_APPENDING)
+Else
+  Set objTextStream = objFSO.CreateTextFile(strFileName)
+End If
+If Err = 0 Then
+  objTextStream.WriteLine strOutput
+  WriteTextFile = 0
+Else
+  WriteTextFile = "Unable to open text file " & strFileName & vbCrLf & _
+   "Error: " & Err.Number & vbCrLf & Err.Description
+  Err.Clear
+End If
+objTextStream.Close
+
+End Function
+
+'******************************************************************************
+
+Function CopyFile(strSource, strTarget)
+'Copies a file from one location to another and handles errors.
+'If target folder does not exist, creates it.
+'Overwrites existing file unless it is read-only.
+'Remote source or target can be specified with UNC share, e.g., \\host\share
+
+On Error Resume Next
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+If Not objFSO.FileExists(strSource) Then
+  CopyFile = 1
+  Exit Function
+End If
+If Not objFSO.FolderExists(strTarget) Then
+  objFSO.CreateFolder(strTarget)
+End If
+If Err = 0 Then
+  objFSO.CopyFile strSource, strTarget & "\"
+  If Err = 0 Then
+    CopyFile = 0
+  Else
+    CopyFile = 3
+  End If
+Else
+  CopyFile = 2
+End If
+
+End Function
+
+'******************************************************************************
+
+]]>
+</script>
+
+</component>
+
+</package>
+
+
+
+We used the wizard to create a skeleton .wsc file and GUID for this example. 
+Then we changed some of the default parameters that the wizard created for us. 
+We also added other code, including the functions, that the wizard doesn't 
+include in its template. You can also create .wsc files without the wizard, as 
+they are simply text files. But if you do and you plan to register it, you must 
+obtain a GUID from some other source.
+If your organization decides to use script components as part of its scripting 
+environment, it's a good idea to standardize on naming conventions for the 
+progID, component ID and file location for the .wsc files. For example, we've 
+used the same name for both the progID and the component ID: 
+"ScriptingGuys.FSO.FileOperations.WSC". To keep within this convention, for 
+other components we would use other names beginning with "ScriptingGuys." and 
+ending with ".WSC".
+The top-level <package> element can contain more than one <component> element, 
+but this file uses only one. The <component> section includes an attribute 
+containing the ID of the component (which, as we mentioned, is the same name we 
+used for the progID). Next comes an optional <comment> element describing the 
+component and a <?component?> element that turns on error-handling and 
+debugging, which are turned off by default.
+The rest of the <component> section, which ends with the </component> tag near 
+the end of the file, contains all the other elements for this component: 
+<registration>, <public> and <script>.
+Within the <registration> section are attributes specifying the progID and GUID 
+(classid). If you are not going to register the component, the line that 
+specifies the GUID is not required.
+Copy Code 
+
+classid="{052cb1e5-6b07-4f5c-abed-9c3f7e2cc31b}"
+
+
+
+But if you've used the wizard to create the file and the GUID, it makes more 
+sense to leave it in case you later decide to register the component.
+Even if the component is not registered, however, the line setting the progID 
+seems to be required.
+Copy Code 
+
+progid="ScriptingGuys.FSO.FileOperations.WSC"
+
+
+
+A test version of the .wsc without this line caused an error when called from a 
+script that used the moniker and GetObject, even though the progID was not used 
+in the script.
+The <registration> section also containes description, version and remotable 
+attributes. Setting remotable to "True" enables the component to be created and 
+called on a remote computer.
+      Note: The wizard does not insert the remotable attribute, but the 
+      documentation shows an example using the code:
+      Copy Code 
+
+remotable=true
+
+
+
+      We found that this threw an error. But we solved the problem by putting 
+      True in quotation marks:
+      Copy Code 
+
+remotable="True"
+
+
+
+
+
+In this same section, we also included optional brief scripts that run when the 
+component is registered or unregistered to announce that this has happened. When 
+we include any script code in the XML file, it has to be within a <script> 
+element that in turn encloses a CDATA element:
+Copy Code 
+
+<script language="VBScript">
+  <![CDATA[
+    'Script code here.
+  ]]>
+  </script>
+
+
+
+The CDATA element tells XML parsers that the code within it should not be 
+treated as XML.
+The <public> element exposes three methods with their parameters:
+      MethodParameters
+      ReadTextFilestrInputFile
+      WriteTextFilestrFileName
+      strOutput
+      CopyFilestrSource
+      strTarget
+
+
+The code for each of these methods is contained in separate functions in the 
+<script> section. The method and parameter names listed in the <public> section 
+must match the names of the functions and their parameters in the <script> 
+section. The <public> section doesn't provide a way to specify what kind of 
+values each method returns, so we describe them in comments at the beginning of 
+each function.
+The <script> section takes the form of separate functions or subroutines (we've 
+used only functions in this example), also enclosed in a CDATA element. It can 
+also include code for properties and events, but we haven't used them here (see 
+the Windows Script Components documentation on MSDN for property and event code 
+examples).
+The three functions, ReadTextFile, WriteTextFile and CopyFile, are prototypes. 
+They work, but they may not be the best way to accomplish these tasks for your 
+particular organization and scripting environment. As always with our code 
+examples, take them as starting points to adapt to your own needs and customize 
+to your own tastes. Their main purpose here is to illustrate a practical use for 
+script components.
+All three functions use the FileSystemObject object model, part of the Script 
+Runtime. For copying files, it's also possible to use WMI classes such as 
+CIM_DataFile and Win32_Directory, so if FSO doesn't do exactly what you want to 
+do you may want to experiment with these.
+A particular issue in writing procedures for inclusion in .wsc files is that the 
+component procedures can't use WScript.Echo or WScript.StdOut.Write to display 
+output. The component is not itself a script, so it doesn't run within the WSH 
+scripting environment and can't take advantage of these output methods. 
+Consequently, the procedures in this component return output information to the 
+calling script for display or interpretation.
+All the functions check for errors and return error messages explaining them. 
+But the functions use different strategies for return values.
+The ReadTextFile function takes advantage of VBScript's chameleon-like variable 
+type, variant. The function returns an array of strings if it succeeds, but a 
+string with an error message if it fails. The calling code must check the return 
+value type and handle it accordingly. (This is demonstrated later in Listing 2.) 
+VBScript is weakly typed, as opposed to strongly typed system-level programming 
+languages such as C++ or Visual Basic. So it lets us get away with effectively 
+treating return values as different types depending on what we find in them.
+The WriteTextFile function appends a string to a text file, and returns an error 
+string that can be checked and displayed by the calling script. CopyFile, on the 
+other hand, returns an integer value representing different outcomes: the 
+calling script has to do the work of checking the integer returned, taking 
+appropriate action, and displaying a corresponding message.
+Top of page 
+
+Calling a Script Component in a Script
+Now you've got yourself a shiny new Windows Script Component. But that was just 
+the setup: the punchline is calling it from a script. Before you can do that, 
+though, you have to either register the component or place it in a specific 
+directory and call it from there.
+The simplest approach is to put the .wsc file into a specific directory. Then, 
+without having to register the COM object, you can connect to it using a 
+moniker. You just have to be sure that the .wsc file is in the expected 
+directory on any machine on which you call the component. If you decide to use 
+this method, you may want to standardize on a directory for your organization. 
+We usually use c:\scripts as the working directory for our script examples, so 
+here we use c:\scripts\wsc for script components.
+If you've written any WMI scripts, you have probably used a moniker. 
+Non-scripters may think of a moniker as something like a nickname, and that's 
+not too far off in the COM world either. To bind to WMI using a moniker, you use 
+a line of code something like this:
+Copy Code 
+
+Set objWMIService = GetObject("winmgmts:")
+
+
+
+That "winmgmts:" is the WMI moniker, and you have to use GetObject rather than 
+CreateObject to instantiate it.
+With Windows Script Components you use the moniker "script:" followed by the 
+full path to the .wsc file. You could also use a URL to the .wsc file if it were 
+available on a Web server. The Windows Script Components runtime, Scrobj.dll, is 
+already registered on machines running Windows and it recognizes the "script:" 
+moniker.
+For example, if the ScriptingGuys.FSO.FileOperations.WSC component is not 
+registered we can connect to it using the moniker followed by the path to its 
+file:
+Copy Code 
+
+Set objFilesFso = GetObject("script:c:\scripts\wsc\files-fso.wsc")
+
+
+
+Then using the object reference, objFilesFso, we can call the methods of our 
+object, as we'll see in Listing 2.
+If we want to register the component object, that requires one more step. We 
+have to run the system command-line tool regsvr32.exe on all the machines where 
+we want to use it. For our component, the command line would look like this:
+Copy Code 
+
+regsvr32 file:\\c:\scripts\wsc\files-fso.wsc
+
+
+
+Once we have done this, we can get an object reference to our object using 
+CreateObject (rather than GetObject) and the progID (rather than the path to the 
+.wsc file):
+Copy Code 
+
+Set objFilesFso = CreateObject("ScriptingGuys.FSO.FileOperations.WSC")
+
+
+
+Only this line will be different; the rest of the script will be the same.
+We've specified remotable="True" in the <registration> element of the component. 
+This means that we should be able to call the component remotely if the 
+component:
+  is registered on the local machine where the script is running.
+  is registered and the .wsc file is present on the remote machine specified in 
+  the script.
+To call a remote script component, we specify the name of the remote machine 
+(sea-wks-1 in this example) where the component is registered and the file is 
+present as the second parameter of CreateObject:
+Copy Code 
+
+Set objFilesFso = CreateObject("ScriptingGuys.FSO.FileOperations.WSC", _
+ "sea-wks-1")
+
+
+
+We can't do this with the moniker because GetObject does not accept the name of 
+a remote machine as a second parameter.
+      Note: As with all remote scripting, the script must run with credentials 
+      that have Administrator privileges on the local and remote machines. 
+      Calling the component remotely may also require configuration of DCOM 
+      remoting with the Component Services snap-in, under Administrative Tools 
+      in Control Panel.
+
+
+This remoting capability is probably not critical for the functions in the 
+component weve created here. In its functions, FileSystemObject lets us use UNC 
+paths to remote shares, such as \\server\public, as parameters, allowing us to 
+copy files between machines.
+With other COM objects that do not contain intrinsic remoting in their 
+procedures, however, the remoting capability added by wrapping the code in a 
+Windows Script Component could prove handy. We haven't experimented much with 
+this option, however, so we're not sure how well it works.
+In this example script we'll take advantage of each of the three functions in 
+the component. We call each function as a method of the objFilesFso object. The 
+parameters we pass in must match the number, order and types of parameters 
+exposed by the procedure in the script component. We also have to know what 
+return values to expect back and handle them in the calling script. For example:
+Copy Code 
+
+intCopy = objFilesFso.CopyFile(strItem, strTargetFolder)
+
+
+
+returns an integer, as we've indicated with the name of the variable that 
+receives it, intCopy. We interpret the integer with a Select Case structure.
+Listing 2 creates an object reference to files-fso.wsc with the "script:" 
+moniker. Then it gets a list of files from a text file and copies them to 
+another folder, logging the results to another text file. The input text file, 
+filelist.txt in this example, must contain the full path to an existing file on 
+each line, for example:
+Copy Code 
+
+c:\scripts\file1.txt
+c:\scripts\file2.doc
+c:\scripts\file3.xls
+
+
+
+Listing 2: Copyfiles.vbs - Copy files to a folder. 
+Copy Code 
+
+'If no path specified, file must be in same directory as script.
+'For remote path or folder, use UNC share name, e.g., \\sea-srv-1\public
+strInputFile = "filelist.txt" 'Each line must be full path of file to copy.
+strOutputFile = "copylog.txt"
+strTargetFolder = "c:\scripts-test"
+
+'Bind to WSC with moniker.
+Set objFilesFso = GetObject("script:c:\scripts\wsc\files-fso.wsc")
+
+'Read contents of text file.
+'If success, returns array. If failure, returns string with error message.
+varText = objFilesFso.ReadTextFile(strInputFile)
+If IsArray(varText) Then
+  strCopy = vbCrLf & "Files copied " & Now
+  For Each strItem In varText
+    strCopy = strCopy & vbCrLf & vbCrLf & "File: " & strItem
+    intCopy = objFilesFso.CopyFile(strItem, strTargetFolder)
+    Select Case intCopy
+      Case 0
+        strCopy = strCopy & vbCrLf & "  Copied to folder " & strTargetFolder
+      Case 1
+        strCopy = strCopy & vbCrLf & "  ERROR: File not found"
+      Case 2
+        strCopy = strCopy & vbCrLf & "  ERROR: Unable to create folder " & _
+         strTargetFolder & vbCrLf & Err.Number & " " & Err.Description
+        Err.Clear
+      Case 3
+        strCopy = strCopy & vbCrLf & _
+         "  ERROR: Unable to copy file to folder " & strTargetFolder & _
+         vbCrLf & Err.Number & " " & Err.Description
+        Err.Clear
+      Case Else strCopy = strCopy & vbCrLf & _
+       "  ERROR: Unable to determine outcome of file copy operation"
+    End Select
+  Next
+Else
+  WScript.Echo varText
+  WScript.Quit
+End If
+
+'Display and write copy log to text file.
+WScript.Echo strCopy
+strWrite = objFilesFso.WriteTextFile(strOutputFile, strCopy)
+If strWrite <> "Success" Then
+  WScript.Echo strWrite
+End If
+
+
+
+There are plenty of other potential ways to use the functions in this component. 
+For example, you could use ReadTextFile to get a list of remote machines from a 
+text file. And you could use WriteTextFile to log the output of just about any 
+script.
+Top of page 
+
+Post-Script
+With Windows Script Components, we've found a way built into Windows scripting 
+technologies to encapsulate reusable code in an XML file that you can use as a 
+COM server. This lets you package your most useful code snippets and procedures 
+and make them available to all your scripts with very little coding overhead.
+We kid you not.
+
+ 
+Copyright 2010 Microsoft Corporation
