@@ -1,5 +1,5 @@
 /*!
-CalcNames 1.7, compute the Name and Description property values for a DOM node
+CalcNames 1.8, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
 Functionality mirrors the steps within the W3C Accessible Name and Description computation algorithm.
 http://www.w3.org/TR/accname-aam-1.1/
@@ -17,7 +17,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 	var nodes = [];
 
 	// Recursively process a DOM node to compute an accessible name in accordance with the spec
-	var walk = function(refNode, stop, skip, nodesToIgnoreValues) {
+	var walk = function(refNode, stop, skip, nodesToIgnoreValues, skipAbort) {
 		var fullName = '';
 
 		// Placeholder for storing CSS before and after pseudo element text values for the top level node
@@ -56,8 +56,8 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 		// Recursively apply the same naming computation to all nodes within the referenced structure
 		walkDOM(refNode, function(node) {
 
-			if (skip || !node || nodes.indexOf(node) !== -1 || (isHidden(node, refNode))) {
-				// Abort if algorithm step is already completed, or if node is a hidden child of refNode, or if this node has already been processed.
+			if ((skip || !node || nodes.indexOf(node) !== -1 || (isHidden(node, refNode))) && !skipAbort) {
+				// Abort if algorithm step is already completed, or if node is a hidden child of refNode, or if this node has already been processed, or skip abort if aria-labelledby self references same node.
 				return;
 			}
 
@@ -118,7 +118,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 						for (var i = 0; i < ids.length; i++) {
 							var element = document.getElementById(ids[i]);
 							// Also prevent the current form field from having its value included in the naming computation if nested as a child of label
-							parts.push(walk(element, true, skip, [node]));
+							parts.push(walk(element, true, skip, [node], element === refNode));
 						}
 						// Check for blank value, since whitespace chars alone are not valid as a name
 						name = addSpacing(trim(parts.join(' ')));
