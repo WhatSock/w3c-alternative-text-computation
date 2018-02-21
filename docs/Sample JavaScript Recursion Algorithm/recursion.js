@@ -1,5 +1,5 @@
 /*!
-CalcNames 1.8, compute the Name and Description property values for a DOM node
+CalcNames 1.9, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
 Functionality mirrors the steps within the W3C Accessible Name and Description computation algorithm.
 http://www.w3.org/TR/accname-aam-1.1/
@@ -15,6 +15,19 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 
 	// Track nodes to prevent duplicate node reference parsing.
 	var nodes = [];
+
+	var cleanCSSText = function(node, text) {
+		var s = text;
+		if (s.indexOf('attr(') !== -1) {
+			var m = s.match(/attr\((.|\n|\r\n)*?\)/g);
+			for (var i = 0; i < m.length; i++) {
+				var b = m[i].slice(5, -1);
+				b = node.getAttribute(b) || '';
+				s = s.replace(m[i], b);
+			}
+		}
+		return s || text;
+	};
 
 	// Recursively process a DOM node to compute an accessible name in accordance with the spec
 	var walk = function(refNode, stop, skip, nodesToIgnoreValues, skipAbort) {
@@ -188,16 +201,6 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					name = addSpacing(trim(walk(getParent(node, 'label'), true, skip, [node])));
 				}
 
-				// Otherwise, if name is still empty and the current node is non-presentational and is a standard form field with a non-empty value property, set name as the property value.
-				if (!name && !rolePresentation && node === refNode && isNativeFormField && node.value) {
-					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(trim(node.value));
-				}
-				else if (!name && !rolePresentation && node === refNode && isSimulatedFormField && ['scrollbar', 'slider', 'spinbutton'].indexOf(nRole) !== -1) {
-					// For range widgets, append aria-valuetext if non-empty, or aria-valuenow if non-empty, or node.value if applicable.
-					name = getObjectValue(nRole, node, true);
-				}
-
 				// Otherwise, if name is still empty and current node is non-presentational and is a standard img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
 				else if (!name && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && node.getAttribute('alt')) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
@@ -208,6 +211,16 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				if (!name && !rolePresentation && nTitle) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(nTitle));
+				}
+
+				// Otherwise, if name is still empty and the current node is non-presentational and is a standard form field with a non-empty value property, set name as the property value.
+				if (!name && !rolePresentation && node === refNode && isNativeFormField && node.value) {
+					// Check for blank value, since whitespace chars alone are not valid as a name
+					name = addSpacing(trim(node.value));
+				}
+				else if (!name && !rolePresentation && node === refNode && isSimulatedFormField && ['scrollbar', 'slider', 'spinbutton'].indexOf(nRole) !== -1) {
+					// For range widgets, append aria-valuetext if non-empty, or aria-valuenow if non-empty, or node.value if applicable.
+					name = getObjectValue(nRole, node, true);
 				}
 
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
@@ -491,8 +504,8 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 		}
 		if (document.defaultView && document.defaultView.getComputedStyle) {
 			return {
-				before: getText(node, ':before'),
-				after: getText(node, ':after')
+				before: cleanCSSText(node, getText(node, ':before')),
+				after: cleanCSSText(node, getText(node, ':after'))
 			};
 		} else {
 			return {before: '', after: ''};
@@ -563,8 +576,9 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			if (!accName) {
 				// Set accessible Name to title value as a fallback if no other labelling mechanism is available.
 				accName = title;
-			} else {
-				// Otherwise, set Description using title attribute if available and including more than whitespace characters.
+			}
+			else if (accName.indexOf(title) === -1) {
+				// Otherwise, set Description using title attribute if available and including more than whitespace characters, but only if title is not already present within accName.
 				accDesc = title;
 			}
 		}
@@ -575,8 +589,11 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			var ids = describedby.split(/\s+/);
 			var parts = [];
 			for (var j = 0; j < ids.length; j++) {
-				var element = document.getElementById(ids[j]);
-				parts.push(walk(element, true));
+				var eD = walk(document.getElementById(ids[j]), true);
+				if (accName.indexOf(eD) === -1) {
+					// Add aria-describedby reference to Description, but only if the returned value is not already included within accName.
+					parts.push(eD);
+				}
 			}
 			// Check for blank value, since whitespace chars alone are not valid as a name
 			var desc = trim(parts.join(' '));
