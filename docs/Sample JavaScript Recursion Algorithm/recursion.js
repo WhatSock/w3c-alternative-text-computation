@@ -545,7 +545,7 @@ target: element
 	};
 
 	var getCSSText = function(node, refNode) {
-		if (node.nodeType !== 1 || node == refNode || ['input', 'select', 'textarea', 'img', 'iframe'].indexOf(node.nodeName.toLowerCase()) !== -1) {
+		if (node && node.nodeType !== 1 || node == refNode || ['input', 'select', 'textarea', 'img', 'iframe'].indexOf(node.nodeName.toLowerCase()) !== -1) {
 			return {before: '', after: ''};
 		}
 		if (document.defaultView && document.defaultView.getComputedStyle) {
