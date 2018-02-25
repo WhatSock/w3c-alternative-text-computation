@@ -258,7 +258,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				}
 
 				// Otherwise, if current node is non-presentational and has a non-empty aria-label then set as name and process no deeper.
-				else if (!name && !rolePresentation && aLabel) {
+				else if (!trim(name) && !rolePresentation && aLabel) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(aLabel));
 
@@ -269,37 +269,37 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				}
 
 				// Otherwise, if name is still empty and the current node is non-presentational and matches the ref node and is a standard form field with a non-empty associated label element, process label with same naming computation algorithm.
-				if (!name && !rolePresentation && node === refNode && isNativeFormField && node.id && document.querySelectorAll('label[for="' + node.id + '"]').length) {
+				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && node.id && document.querySelectorAll('label[for="' + node.id + '"]').length) {
 					var label = document.querySelector('label[for="' + node.id + '"]');
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(walk(label, true, skip, [node], false, {ref: ownedBy, top: label})));
 				}
 
 				// Otherwise, if name is still empty and the current node is non-presentational and matches the ref node and is a standard form field with an implicit label element surrounding it, process label with same naming computation algorithm.
-				if (!name && !rolePresentation && node === refNode && isNativeFormField && getParent(node, 'label').nodeType === 1) {
+				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && getParent(node, 'label').nodeType === 1) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					var label = getParent(node, 'label');
 					name = addSpacing(trim(walk(label, true, skip, [node], false, {ref: ownedBy, top: label})));
 				}
 
 				// Otherwise, if name is still empty and current node is non-presentational and is a standard img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
-				else if (!name && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && node.getAttribute('alt')) {
+				else if (!trim(name) && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && node.getAttribute('alt')) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(node.getAttribute('alt')));
 				}
 
 				// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
-				if (!name && !rolePresentation && nTitle) {
+				if (!trim(name) && !rolePresentation && nTitle) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(nTitle));
 				}
 
 				// Otherwise, if name is still empty and the current node is non-presentational and is a standard form field with a non-empty value property, set name as the property value.
-				if (!name && !rolePresentation && node === refNode && isNativeFormField && node.value) {
+				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && node.value) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(node.value));
 				}
-				else if (!name && !rolePresentation && node === refNode && isSimulatedFormField && ['scrollbar', 'slider', 'spinbutton'].indexOf(nRole) !== -1) {
+				else if (!trim(name) && !rolePresentation && node === refNode && isSimulatedFormField && ['scrollbar', 'slider', 'spinbutton'].indexOf(nRole) !== -1) {
 					// For range widgets, append aria-valuetext if non-empty, or aria-valuenow if non-empty, or node.value if applicable.
 					name = getObjectValue(nRole, node, true);
 				}
@@ -612,7 +612,7 @@ target: element
 		// Check for blank value, since whitespace chars alone are not valid as a name
 		var title = trim(node.getAttribute('title'));
 		if (title) {
-			if (!accName) {
+			if (!trim(accName)) {
 				// Set accessible Name to title value as a fallback if no other labelling mechanism is available.
 				accName = title;
 			}
