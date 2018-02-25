@@ -1,5 +1,5 @@
 /*!
-CalcNames 1.10, compute the Name and Description property values for a DOM node
+CalcNames 1.11, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
 Functionality mirrors the steps within the W3C Accessible Name and Description computation algorithm.
 http://www.w3.org/TR/accname-aam-1.1/
@@ -7,7 +7,7 @@ Authored by Bryan Garaventa, plus refactoring contrabutions by Tobias Bengfort
 https://github.com/whatsock/w3c-alternative-text-computation
 Distributed under the terms of the Open Source Initiative OSI - MIT License
 */
-var currentVersion = '1.10';
+var currentVersion = '1.11';
 
 // Naming Computation Prototype
 var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
@@ -149,8 +149,9 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 		};
 
 		walkDOM(refNode, function(node) {
+			var isEmbeddedNode = node && node.nodeType === 1 && nodesToIgnoreValues && nodesToIgnoreValues.length && nodesToIgnoreValues.indexOf(node) !== -1 && node === topNode && node !== refNode;
 
-			if ((skip || !node || nodes.indexOf(node) !== -1 || (isHidden(node, ownedBy.top))) && !skipAbort) {
+			if ((skip || !node || nodes.indexOf(node) !== -1 || (isHidden(node, ownedBy.top))) && !skipAbort && !isEmbeddedNode) {
 				// Abort if algorithm step is already completed, or if node is a hidden child of refNode, or if this node has already been processed, or skip abort if aria-labelledby self references same node.
 				return;
 			}
@@ -191,10 +192,6 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				if (nodeIsBlock && blockNodeStack.indexOf(node) === -1) {
 					blockNodeStack.push(node);
 				}
-				if (nodeIsBlock && node !== refNode) {
-					// Add space at beginning of block level element if detected.
-					name += ' ';
-				}
 
 				var aLabelledby = node.getAttribute('aria-labelledby') || '';
 				var aLabel = node.getAttribute('aria-label') || '';
@@ -220,7 +217,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 						name = addSpacing(trim(parts.join(' ')));
 					}
 
-					if (name || rolePresentation) {
+					if (trim(name) || rolePresentation) {
 						// Abort further recursion if name is valid or if the referenced node is presentational.
 						skip = true;
 					}
@@ -265,7 +262,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(aLabel));
 
-					if (name && node === refNode) {
+					if (trim(name) && node === refNode) {
 						// If name is non-empty and both the current and refObject nodes match, then don't process any deeper.
 						skip = true;
 					}
@@ -307,6 +304,11 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					name = getObjectValue(nRole, node, true);
 				}
 
+				if (nodeIsBlock && node !== refNode) {
+					// Add space at beginning of block level element if detected.
+					name = ' ' + name;
+				}
+
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
 				// Also abort aria-owns processing if contained on an element that does not support child elements.
 				if (aOwns && !isNativeFormField && nTag != 'img') {
@@ -343,7 +345,7 @@ target: element
 			// Prepend and append the current CSS pseudo element text, plus normalize all whitespace such as newline characters and others into flat spaces.
 			name = cssO.before + name.replace(/\s+/g, ' ') + cssO.after;
 
-			if (name && !hasParentLabel(node, false, ownedBy.top, ownedBy)) {
+			if (trim(name) && !hasParentLabel(node, false, ownedBy.top, ownedBy)) {
 				fullName += name;
 			}
 
