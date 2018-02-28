@@ -1,5 +1,5 @@
 /*!
-CalcNames 1.11, compute the Name and Description property values for a DOM node
+CalcNames 1.12, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
 Functionality mirrors the steps within the W3C Accessible Name and Description computation algorithm.
 http://www.w3.org/TR/accname-aam-1.1/
@@ -36,8 +36,9 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			}
 
 			// Always include name from content when the referenced node matches list1, as well as when child nodes match those within list3
+			// Note: gridcell was added to list1 to account for focusable gridcells that match the ARIA 1.0 paradigm for interactive grids.
 			var list1 = {
-				roles: ['link', 'button', 'checkbox', 'option', 'radio', 'switch', 'tab', 'treeitem', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'cell', 'columnheader', 'rowheader', 'tooltip', 'heading'],
+				roles: ['button', 'checkbox', 'link', 'option', 'radio', 'switch', 'tab', 'treeitem', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'cell', 'gridcell', 'columnheader', 'rowheader', 'tooltip', 'heading'],
 				tags: ['a', 'button', 'summary', 'input', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'menuitem', 'option', 'td', 'th']
 			};
 
@@ -73,7 +74,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				}
 			}
 			// Otherwise process list2 to identify roles to ignore processing name from content.
-			else if (inList(node, list2) || node === topNode) {
+			else if (inList(node, list2) || (node === topNode && !inList(node, list1))) {
 				return true;
 			}
 			else {
