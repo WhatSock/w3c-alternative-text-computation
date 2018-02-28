@@ -1,5 +1,7 @@
+var currentVersion = '1.12';
+
 /*!
-CalcNames 1.12, compute the Name and Description property values for a DOM node
+CalcNames: The Naming Computation Prototype, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
 Functionality mirrors the steps within the W3C Accessible Name and Description computation algorithm.
 http://www.w3.org/TR/accname-aam-1.1/
@@ -7,7 +9,6 @@ Authored by Bryan Garaventa, plus refactoring contrabutions by Tobias Bengfort
 https://github.com/whatsock/w3c-alternative-text-computation
 Distributed under the terms of the Open Source Initiative OSI - MIT License
 */
-var currentVersion = '1.11';
 
 // Naming Computation Prototype
 var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
