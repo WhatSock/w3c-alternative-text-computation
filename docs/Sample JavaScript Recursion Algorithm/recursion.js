@@ -1,4 +1,4 @@
-var currentVersion = '1.12';
+var currentVersion = '1.13';
 
 /*!
 CalcNames: The Naming Computation Prototype, compute the Name and Description property values for a DOM node
@@ -120,24 +120,14 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			}
 		}
 
-		var blockNodeStack = [];
-		var hasLeftBlockNodeStack = function(node) {
-			var blocks = blockNodeStack.length;
-			for (var i = blocks; i; i--) {
-				if (!inParent(node, blockNodeStack[i - 1])) {
-					blockNodeStack.splice(i - 1, 1);
-				}
-			}
-			if (blockNodeStack.length < blocks) {
-				return true;
-			}
-			return false;
-		};
-
 		// Recursively apply the same naming computation to all nodes within the referenced structure
 		var walkDOM = function(node, fn, refNode) {
 			if (!node) {
 				return '';
+			}
+			var nodeIsBlock = node && node.nodeType === 1 && isBlockLevelElement(node);
+			if (nodeIsBlock) {
+				fullName += ' ';
 			}
 			var ariaOwns = fn(node) || '';
 			if (!isException(node, ownedBy.top)) {
@@ -146,6 +136,9 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					walkDOM(node, fn, refNode);
 					node = node.nextSibling;
 				}
+			}
+			if (nodeIsBlock) {
+				fullName += ' ';
 			}
 			fullName += ariaOwns;
 		};
@@ -189,11 +182,6 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 
 			// Process standard DOM element node
 			if (node.nodeType === 1) {
-
-				var nodeIsBlock = isBlockLevelElement(node);
-				if (nodeIsBlock && blockNodeStack.indexOf(node) === -1) {
-					blockNodeStack.push(node);
-				}
 
 				var aLabelledby = node.getAttribute('aria-labelledby') || '';
 				var aLabel = node.getAttribute('aria-label') || '';
@@ -306,11 +294,6 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					name = getObjectValue(nRole, node, true);
 				}
 
-				if (nodeIsBlock && node !== refNode) {
-					// Add space at beginning of block level element if detected.
-					name = ' ' + name;
-				}
-
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
 				// Also abort aria-owns processing if contained on an element that does not support child elements.
 				if (aOwns && !isNativeFormField && nTag != 'img') {
@@ -339,8 +322,7 @@ target: element
 			// Otherwise, process text node
 			else if (node.nodeType === 3) {
 
-				// Add space at end of block level element if detected.
-				name = (hasLeftBlockNodeStack(node) ? ' ' : '') + node.data;
+				name = node.data;
 
 			}
 
@@ -455,8 +437,9 @@ target: element
 	https://github.com/webmodules/block-elements
 	Note: 'br' was added to this array because it impacts visual display and should thus add a space .
 	Reference issue: https://github.com/w3c/accname/issues/4
+Note: Added in 1.13, td, th, tr, and legend
 	*/
-	var blockElements = ['address', 'article', 'aside', 'blockquote', 'br', 'canvas', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'main', 'nav', 'noscript', 'ol', 'output', 'p', 'pre', 'section', 'table', 'tfoot', 'ul', 'video'];
+	var blockElements = ['address', 'article', 'aside', 'blockquote', 'br', 'canvas', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'legend', 'li', 'main', 'nav', 'noscript', 'ol', 'output', 'p', 'pre', 'section', 'table', 'td', 'tfoot', 'th', 'tr', 'ul', 'video'];
 
 	var getObjectValue = function(role, node, isRange, isEdit, isSelect, isNative) {
 		var val = '';
