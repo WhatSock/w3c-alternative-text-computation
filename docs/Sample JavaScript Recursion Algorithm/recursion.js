@@ -1,4 +1,4 @@
-var currentVersion = '1.13';
+var currentVersion = '1.14';
 
 /*!
 CalcNames: The Naming Computation Prototype, compute the Name and Description property values for a DOM node
@@ -59,10 +59,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			var inList = function(node, list) {
 				var role = node.getAttribute('role');
 				var tag = node.nodeName.toLowerCase();
-				return (
-					list.roles.indexOf(role) >= 0 ||
-					(!role && list2.tags.indexOf(tag) >= 0)
-				);
+				return (role && list.roles.indexOf(role) >= 0) || (!role && list.tags.indexOf(tag) >= 0);
 			};
 
 			// The list3 overrides must be checked first.
