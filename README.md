@@ -1,4 +1,4 @@
-W3C Accessible Name Computation Prototype 1.4
+W3C Accessible Name Computation Prototype
 A functional prototype for the W3C Alternative Text Computation.
 
 The Accessible Name Computation Prototype
