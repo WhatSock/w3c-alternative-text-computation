@@ -1,4 +1,4 @@
-var currentVersion = '1.14';
+var currentVersion = '1.15';
 
 /*!
 CalcNames: The Naming Computation Prototype, compute the Name and Description property values for a DOM node
@@ -326,7 +326,7 @@ target: element
 			// Prepend and append the current CSS pseudo element text, plus normalize all whitespace such as newline characters and others into flat spaces.
 			name = cssO.before + name.replace(/\s+/g, ' ') + cssO.after;
 
-			if (trim(name) && !hasParentLabel(node, false, ownedBy.top, ownedBy)) {
+			if (name.length && !hasParentLabel(node, false, ownedBy.top, ownedBy)) {
 				fullName += name;
 			}
 
