@@ -1,4 +1,4 @@
-var currentVersion = '1.15';
+var currentVersion = '1.16';
 
 /*!
 CalcNames: The Naming Computation Prototype, compute the Name and Description property values for a DOM node
@@ -122,26 +122,39 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			if (!node) {
 				return '';
 			}
+			var fName = '';
 			var nodeIsBlock = node && node.nodeType === 1 && isBlockLevelElement(node);
 			if (nodeIsBlock) {
-				fullName += ' ';
+				fName = ' ';
 			}
-			var ariaOwns = fn(node) || '';
+			var fResult = fn(node) || {};
+			if (fResult.name && fResult.name.length) {
+				fName += fResult.name;
+			}
 			if (!isException(node, ownedBy.top)) {
 				node = node.firstChild;
 				while (node) {
-					walkDOM(node, fn, refNode);
+					fName += walkDOM(node, fn, refNode);
 					node = node.nextSibling;
 				}
 			}
-			if (nodeIsBlock) {
-				fullName += ' ';
+			if (!trim(fName) && trim(fResult.title)) {
+				fName = fResult.title;
 			}
-			fullName += ariaOwns;
+			if (nodeIsBlock) {
+				fName += ' ';
+			}
+			fName += fResult.owns || '';
+			return fName;
 		};
 
-		walkDOM(refNode, function(node) {
-			var isEmbeddedNode = node && node.nodeType === 1 && nodesToIgnoreValues && nodesToIgnoreValues.length && nodesToIgnoreValues.indexOf(node) !== -1 && node === topNode && node !== refNode;
+		fullName = walkDOM(refNode, function(node) {
+			var result = {
+name: '',
+title: '',
+owns: ''
+			};
+			var isEmbeddedNode = node && node.nodeType === 1 && nodesToIgnoreValues && nodesToIgnoreValues.length && nodesToIgnoreValues.indexOf(node) !== -1 && node === topNode && node !== refNode ? true : false;
 
 			if ((skip || !node || nodes.indexOf(node) !== -1 || (isHidden(node, ownedBy.top))) && !skipAbort && !isEmbeddedNode) {
 				// Abort if algorithm step is already completed, or if node is a hidden child of refNode, or if this node has already been processed, or skip abort if aria-labelledby self references same node.
@@ -189,6 +202,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				var isNativeFormField = ['input', 'select', 'textarea'].indexOf(nTag) !== -1;
 				var isSimulatedFormField = ['searchbox', 'scrollbar', 'slider', 'spinbutton', 'textbox', 'combobox', 'grid', 'listbox', 'tablist', 'tree', 'treegrid'].indexOf(nRole) !== -1;
 				var aOwns = node.getAttribute('aria-owns') || '';
+				var isSeparatChildFormField = (!isEmbeddedNode && ((node !== refNode && (isNativeFormField || isSimulatedFormField)) || (node.id && ownedBy[node.id] && ownedBy[node.id].target && ownedBy[node.id].target === node)));
 
 				// Check for non-empty value of aria-labelledby if current node equals reference node, follow each ID ref, then stop and process no deeper.
 				if (!stop && node === refNode && aLabelledby) {
@@ -211,7 +225,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				}
 
 				// Otherwise, if the current node is non-presentational and is a nested widget control within the parent ref obj, then add only its value and process no deeper
-				if ((!rolePresentation && node !== refNode && (isNativeFormField || isSimulatedFormField)) || (node.id && ownedBy[node.id] && ownedBy[node.id].target && ownedBy[node.id].target === node)) {
+				if (!rolePresentation && isSeparatChildFormField) {
 
 					// Prevent the referencing node from having its value included in the case of form control labels that contain the element with focus.
 					if (!(nodesToIgnoreValues && nodesToIgnoreValues.length && nodesToIgnoreValues.indexOf(node) !== -1)) {
@@ -245,7 +259,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				}
 
 				// Otherwise, if current node is non-presentational and has a non-empty aria-label then set as name and process no deeper.
-				else if (!trim(name) && !rolePresentation && aLabel) {
+				if (!trim(name) && !rolePresentation && trim(aLabel) && !isSeparatChildFormField) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(aLabel));
 
@@ -270,19 +284,19 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				}
 
 				// Otherwise, if name is still empty and current node is non-presentational and is a standard img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
-				else if (!trim(name) && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && node.getAttribute('alt')) {
+				else if (!trim(name) && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && trim(node.getAttribute('alt'))) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(node.getAttribute('alt')));
 				}
 
 				// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
-				if (!trim(name) && !rolePresentation && nTitle) {
+				if (!trim(name) && !rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(trim(nTitle));
+					result.title = addSpacing(trim(nTitle));
 				}
 
 				// Otherwise, if name is still empty and the current node is non-presentational and is a standard form field with a non-empty value property, set name as the property value.
-				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && node.value) {
+				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && trim(node.value)) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(node.value));
 				}
@@ -327,10 +341,12 @@ target: element
 			name = cssO.before + name.replace(/\s+/g, ' ') + cssO.after;
 
 			if (name.length && !hasParentLabel(node, false, ownedBy.top, ownedBy)) {
-				fullName += name;
+				result.name = name;
 			}
 
-			return ariaO;
+			result.owns = ariaO;
+
+			return result;
 		}, refNode);
 
 		// Prepend and append the refObj CSS pseudo element text, plus normalize whitespace chars into flat spaces.
