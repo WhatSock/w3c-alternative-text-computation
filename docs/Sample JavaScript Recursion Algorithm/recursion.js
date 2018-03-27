@@ -1,4 +1,4 @@
-var currentVersion = '1.16';
+var currentVersion = '1.17';
 
 /*!
 CalcNames: The Naming Computation Prototype, compute the Name and Description property values for a DOM node
@@ -295,6 +295,7 @@ owns: ''
 					result.title = addSpacing(trim(nTitle));
 				}
 
+				/* Disabled based on feedback from the ARIA WG
 				// Otherwise, if name is still empty and the current node is non-presentational and is a standard form field with a non-empty value property, set name as the property value.
 				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && trim(node.value)) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
@@ -304,6 +305,7 @@ owns: ''
 					// For range widgets, append aria-valuetext if non-empty, or aria-valuenow if non-empty, or node.value if applicable.
 					name = getObjectValue(nRole, node, true);
 				}
+				*/
 
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
 				// Also abort aria-owns processing if contained on an element that does not support child elements.
