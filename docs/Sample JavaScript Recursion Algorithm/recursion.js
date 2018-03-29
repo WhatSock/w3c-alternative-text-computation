@@ -1,4 +1,4 @@
-var currentVersion = '1.17';
+var currentVersion = '1.18';
 
 /*!
 CalcNames: The Naming Computation Prototype, compute the Name and Description property values for a DOM node
@@ -270,17 +270,42 @@ owns: ''
 				}
 
 				// Otherwise, if name is still empty and the current node is non-presentational and matches the ref node and is a standard form field with a non-empty associated label element, process label with same naming computation algorithm.
-				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && node.id && document.querySelectorAll('label[for="' + node.id + '"]').length) {
-					var label = document.querySelector('label[for="' + node.id + '"]');
-					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(trim(walk(label, true, skip, [node], false, {ref: ownedBy, top: label})));
-				}
+				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField) {
 
-				// Otherwise, if name is still empty and the current node is non-presentational and matches the ref node and is a standard form field with an implicit label element surrounding it, process label with same naming computation algorithm.
-				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && getParent(node, 'label').nodeType === 1) {
-					// Check for blank value, since whitespace chars alone are not valid as a name
-					var label = getParent(node, 'label');
-					name = addSpacing(trim(walk(label, true, skip, [node], false, {ref: ownedBy, top: label})));
+					/* Logic modified to match issue
+					https://github.com/WhatSock/w3c-alternative-text-computation/issues/12 */
+					var labels = document.querySelectorAll('label');
+					var implicitLabel = getParent(node, 'label') || false;
+					var explicitLabel = node.id && document.querySelectorAll('label[for="' + node.id + '"]').length ? document.querySelector('label[for="' + node.id + '"]') : false;
+					var implicitI = 0;
+					var explicitI = 0;
+					for (var i = 0; i < labels.length; i++) {
+						if (labels[i] === implicitLabel) {
+							implicitI = i;
+						}
+						else if (labels[i] === explicitLabel) {
+							explicitI = i;
+						}
+					}
+					var isImplicitFirst = implicitLabel && implicitLabel.nodeType === 1 && explicitLabel && explicitLabel.nodeType === 1 && implicitI < explicitI ? true : false;
+
+					if (implicitLabel && explicitLabel && isImplicitFirst) {
+						// Check for blank value, since whitespace chars alone are not valid as a name
+						name = addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}))) + addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel})));
+					}
+					else if (explicitLabel && implicitLabel) {
+						// Check for blank value, since whitespace chars alone are not valid as a name
+						name = addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}))) + addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel})));
+					}
+					else if (explicitLabel) {
+						// Check for blank value, since whitespace chars alone are not valid as a name
+						name = addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel})));
+					}
+					else if (implicitLabel) {
+						// Check for blank value, since whitespace chars alone are not valid as a name
+						name = addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel})));
+					}
+
 				}
 
 				// Otherwise, if name is still empty and current node is non-presentational and is a standard img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
@@ -295,7 +320,8 @@ owns: ''
 					result.title = addSpacing(trim(nTitle));
 				}
 
-				/* Disabled based on feedback from the ARIA WG
+				/* Disabled based on issue
+				https://github.com/WhatSock/w3c-alternative-text-computation/issues/9#issuecomment-374706622
 				// Otherwise, if name is still empty and the current node is non-presentational and is a standard form field with a non-empty value property, set name as the property value.
 				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && trim(node.value)) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
