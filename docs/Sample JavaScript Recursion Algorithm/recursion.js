@@ -1,4 +1,4 @@
-var currentVersion = '1.18';
+var currentVersion = '1.19';
 
 /*!
 CalcNames: The Naming Computation Prototype, compute the Name and Description property values for a DOM node
@@ -68,7 +68,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					return !isFocusable(node);
 				} else {
 					// Note: the inParent checker needs to be present to allow for embedded roles matching list3 when the referenced parent is referenced using aria-labelledby, aria-describedby, or aria-owns.
-					return !(inParent(node, ownedBy.top) || inList(refNode, list1));
+					return !((inParent(node, ownedBy.top) && node.nodeName.toLowerCase() != 'select') || inList(refNode, list1));
 				}
 			}
 			// Otherwise process list2 to identify roles to ignore processing name from content.
@@ -200,7 +200,11 @@ owns: ''
 				var nRole = node.getAttribute('role');
 				var rolePresentation = ['presentation', 'none'].indexOf(nRole) !== -1;
 				var isNativeFormField = ['input', 'select', 'textarea'].indexOf(nTag) !== -1;
-				var isSimulatedFormField = ['searchbox', 'scrollbar', 'slider', 'spinbutton', 'textbox', 'combobox', 'grid', 'listbox', 'tablist', 'tree', 'treegrid'].indexOf(nRole) !== -1;
+				var isRangeWidgetRole = ['scrollbar', 'slider', 'spinbutton'].indexOf(nRole) !== -1;
+				var isEditWidgetRole = ['searchbox', 'textbox'].indexOf(nRole) !== -1;
+				var isSelectWidgetRole = ['grid', 'listbox', 'tablist', 'tree', 'treegrid'].indexOf(nRole) !== -1;
+				var isSimulatedFormField = isRangeWidgetRole || isEditWidgetRole || isSelectWidgetRole || nRole == 'combobox';
+				var isWidgetRole = isSimulatedFormField || ['button', 'checkbox', 'link', 'switch', 'option', 'menu', 'menubar', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'radio', 'tab', 'treeitem', 'gridcell'].indexOf(nRole) !== -1;
 				var aOwns = node.getAttribute('aria-owns') || '';
 				var isSeparatChildFormField = (!isEmbeddedNode && ((node !== refNode && (isNativeFormField || isSimulatedFormField)) || (node.id && ownedBy[node.id] && ownedBy[node.id].target && ownedBy[node.id].target === node)));
 
@@ -230,25 +234,26 @@ owns: ''
 					// Prevent the referencing node from having its value included in the case of form control labels that contain the element with focus.
 					if (!(nodesToIgnoreValues && nodesToIgnoreValues.length && nodesToIgnoreValues.indexOf(node) !== -1)) {
 
-						if (isSimulatedFormField && ['scrollbar', 'slider', 'spinbutton'].indexOf(nRole) !== -1) {
+						if (isRangeWidgetRole) {
 							// For range widgets, append aria-valuetext if non-empty, or aria-valuenow if non-empty, or node.value if applicable.
 							name = getObjectValue(nRole, node, true);
 						}
-						else if (isSimulatedFormField && ['searchbox', 'textbox'].indexOf(nRole) !== -1) {
+						else if (isEditWidgetRole) {
 							// For simulated edit widgets, append text from content if applicable, or node.value if applicable.
 							name = getObjectValue(nRole, node, false, true);
 						}
-						else if (isSimulatedFormField && ['grid', 'listbox', 'tablist', 'tree', 'treegrid'].indexOf(nRole) !== -1) {
+						else if (isSelectWidgetRole) {
 							// For simulated select widgets, append same naming computation algorithm for all child nodes including aria-selected="true" separated by a space when multiple.
 							// Also filter nodes so that only valid child roles of relevant parent role that include aria-selected="true" are included.
 							name = getObjectValue(nRole, node, false, false, true);
 						}
-						else if (isNativeFormField && ['input', 'textarea'].indexOf(nTag) !== -1) {
+						else if (isNativeFormField && ['input', 'textarea'].indexOf(nTag) !== -1 && (!isWidgetRole || isEditWidgetRole)) {
 							// For native edit fields, append node.value when applicable.
 							name = getObjectValue(nRole, node, false, false, false, true);
 						}
-						else if (isNativeFormField && nTag === 'select') {
-							// For native select fields, get text from content for all options with selected attribute separated by a space when multiple.
+						else if (isNativeFormField && nTag === 'select' && (!isWidgetRole || ['combobox'].indexOf(nRole) !== -1)) {
+							// For native select fields, get text from content for all options with selected attribute separated by a space when multiple, but don't process if another widget role is present unless it matches role="combobox".
+							// Reference: https://github.com/WhatSock/w3c-alternative-text-computation/issues/7
 							name = getObjectValue(nRole, node, false, false, true, true);
 						}
 
@@ -319,19 +324,6 @@ owns: ''
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					result.title = addSpacing(trim(nTitle));
 				}
-
-				/* Disabled based on issue
-				https://github.com/WhatSock/w3c-alternative-text-computation/issues/9#issuecomment-374706622
-				// Otherwise, if name is still empty and the current node is non-presentational and is a standard form field with a non-empty value property, set name as the property value.
-				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField && trim(node.value)) {
-					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(trim(node.value));
-				}
-				else if (!trim(name) && !rolePresentation && node === refNode && isSimulatedFormField && ['scrollbar', 'slider', 'spinbutton'].indexOf(nRole) !== -1) {
-					// For range widgets, append aria-valuetext if non-empty, or aria-valuenow if non-empty, or node.value if applicable.
-					name = getObjectValue(nRole, node, true);
-				}
-				*/
 
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
 				// Also abort aria-owns processing if contained on an element that does not support child elements.
