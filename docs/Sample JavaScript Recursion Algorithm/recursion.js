@@ -1,7 +1,7 @@
-var currentVersion = '1.19';
+var currentVersion = '2.0';
 
 /*!
-CalcNames: The Naming Computation Prototype, compute the Name and Description property values for a DOM node
+CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
 Functionality mirrors the steps within the W3C Accessible Name and Description computation algorithm.
 http://www.w3.org/TR/accname-aam-1.1/
@@ -10,7 +10,7 @@ https://github.com/whatsock/w3c-alternative-text-computation
 Distributed under the terms of the Open Source Initiative OSI - MIT License
 */
 
-// Naming Computation Prototype
+// AccName Computation Prototype
 var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 	if (!node || node.nodeType !== 1) {
 		return;
@@ -36,28 +36,8 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				return false;
 			}
 
-			// Always include name from content when the referenced node matches list1, as well as when child nodes match those within list3
-			// Note: gridcell was added to list1 to account for focusable gridcells that match the ARIA 1.0 paradigm for interactive grids.
-			var list1 = {
-				roles: ['button', 'checkbox', 'link', 'option', 'radio', 'switch', 'tab', 'treeitem', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'cell', 'gridcell', 'columnheader', 'rowheader', 'tooltip', 'heading'],
-				tags: ['a', 'button', 'summary', 'input', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'menuitem', 'option', 'td', 'th']
-			};
-
-			// Never include name from content when current node matches list2
-			// Note: combobox was added to account for the ARIA 1.1 design pattern change from 1.0, but this is still overridden in list3 when combobox is applied to focusable elements so that the 1.0 design pattern will remain supported.
-			var list2 = {
-				roles: ['combobox', 'application', 'alert', 'log', 'marquee', 'timer', 'alertdialog', 'dialog', 'banner', 'complementary', 'form', 'main', 'navigation', 'region', 'search', 'article', 'document', 'feed', 'figure', 'img', 'math', 'toolbar', 'menu', 'menubar', 'grid', 'listbox', 'radiogroup', 'textbox', 'searchbox', 'spinbutton', 'scrollbar', 'slider', 'tablist', 'tabpanel', 'tree', 'treegrid', 'separator'],
-				tags: ['article', 'aside', 'body', 'select', 'datalist', 'optgroup', 'dialog', 'figure', 'footer', 'form', 'header', 'hr', 'img', 'textarea', 'input', 'main', 'math', 'menu', 'nav', 'section']
-			};
-
-			// As an override of list2, conditionally include name from content if current node is focusable, or if the current node matches list3 while the referenced parent node matches list1.
-			var list3 = {
-				roles: ['combobox', 'term', 'definition', 'directory', 'list', 'group', 'note', 'status', 'table', 'rowgroup', 'row', 'contentinfo'],
-				tags: ['dl', 'ul', 'ol', 'dd', 'details', 'output', 'table', 'thead', 'tbody', 'tfoot', 'tr']
-			};
-
 			var inList = function(node, list) {
-				var role = node.getAttribute('role');
+				var role = getRole(node);
 				var tag = node.nodeName.toLowerCase();
 				return (role && list.roles.indexOf(role) >= 0) || (!role && list.tags.indexOf(tag) >= 0);
 			};
@@ -131,7 +111,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			if (fResult.name && fResult.name.length) {
 				fName += fResult.name;
 			}
-			if (!isException(node, ownedBy.top)) {
+			if (!isException(node, ownedBy.top, ownedBy)) {
 				node = node.firstChild;
 				while (node) {
 					fName += walkDOM(node, fn, refNode);
@@ -158,7 +138,7 @@ owns: ''
 
 			if ((skip || !node || nodes.indexOf(node) !== -1 || (isHidden(node, ownedBy.top))) && !skipAbort && !isEmbeddedNode) {
 				// Abort if algorithm step is already completed, or if node is a hidden child of refNode, or if this node has already been processed, or skip abort if aria-labelledby self references same node.
-				return;
+				return result;
 			}
 
 			if (nodes.indexOf(node) === -1) {
@@ -197,39 +177,40 @@ owns: ''
 				var aLabel = node.getAttribute('aria-label') || '';
 				var nTitle = node.getAttribute('title') || '';
 				var nTag = node.nodeName.toLowerCase();
-				var nRole = node.getAttribute('role');
-				var rolePresentation = ['presentation', 'none'].indexOf(nRole) !== -1;
-				var isNativeFormField = ['input', 'select', 'textarea'].indexOf(nTag) !== -1;
-				var isRangeWidgetRole = ['scrollbar', 'slider', 'spinbutton'].indexOf(nRole) !== -1;
-				var isEditWidgetRole = ['searchbox', 'textbox'].indexOf(nRole) !== -1;
-				var isSelectWidgetRole = ['grid', 'listbox', 'tablist', 'tree', 'treegrid'].indexOf(nRole) !== -1;
+				var nRole = getRole(node);
+
+				var isNativeFormField = nativeFormFields.indexOf(nTag) !== -1;
+				var isRangeWidgetRole = rangeWidgetRoles.indexOf(nRole) !== -1;
+				var isEditWidgetRole = editWidgetRoles.indexOf(nRole) !== -1;
+				var isSelectWidgetRole = selectWidgetRoles.indexOf(nRole) !== -1;
 				var isSimulatedFormField = isRangeWidgetRole || isEditWidgetRole || isSelectWidgetRole || nRole == 'combobox';
-				var isWidgetRole = isSimulatedFormField || ['button', 'checkbox', 'link', 'switch', 'option', 'menu', 'menubar', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'radio', 'tab', 'treeitem', 'gridcell'].indexOf(nRole) !== -1;
+				var isWidgetRole = isSimulatedFormField || otherWidgetRoles.indexOf(nRole) !== -1;
+
+				var hasName = false;
 				var aOwns = node.getAttribute('aria-owns') || '';
-				var isSeparatChildFormField = (!isEmbeddedNode && ((node !== refNode && (isNativeFormField || isSimulatedFormField)) || (node.id && ownedBy[node.id] && ownedBy[node.id].target && ownedBy[node.id].target === node)));
+				var isSeparatChildFormField = (!isEmbeddedNode && ((node !== refNode && (isNativeFormField || isSimulatedFormField)) || (node.id && ownedBy[node.id] && ownedBy[node.id].target && ownedBy[node.id].target === node))) ? true : false;
 
 				// Check for non-empty value of aria-labelledby if current node equals reference node, follow each ID ref, then stop and process no deeper.
 				if (!stop && node === refNode && aLabelledby) {
-					if (!rolePresentation) {
-						var ids = aLabelledby.split(/\s+/);
-						var parts = [];
-						for (var i = 0; i < ids.length; i++) {
-							var element = document.getElementById(ids[i]);
-							// Also prevent the current form field from having its value included in the naming computation if nested as a child of label
-							parts.push(walk(element, true, skip, [node], element === refNode, {ref: ownedBy, top: element}));
-						}
-						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(parts.join(' ')));
+					var ids = aLabelledby.split(/\s+/);
+					var parts = [];
+					for (var i = 0; i < ids.length; i++) {
+						var element = document.getElementById(ids[i]);
+						// Also prevent the current form field from having its value included in the naming computation if nested as a child of label
+						parts.push(walk(element, true, skip, [node], element === refNode, {ref: ownedBy, top: element}));
 					}
+					// Check for blank value, since whitespace chars alone are not valid as a name
+					name = addSpacing(trim(parts.join(' ')));
 
-					if (trim(name) || rolePresentation) {
-						// Abort further recursion if name is valid or if the referenced node is presentational.
+					if (trim(name)) {
+						hasName = true;
+						// Abort further recursion if name is valid.
 						skip = true;
 					}
 				}
 
-				// Otherwise, if the current node is non-presentational and is a nested widget control within the parent ref obj, then add only its value and process no deeper
-				if (!rolePresentation && isSeparatChildFormField) {
+				// Otherwise, if the current node is a nested widget control within the parent ref obj, then add only its value and process no deeper within the branch.
+				if (isSeparatChildFormField) {
 
 					// Prevent the referencing node from having its value included in the case of form control labels that contain the element with focus.
 					if (!(nodesToIgnoreValues && nodesToIgnoreValues.length && nodesToIgnoreValues.indexOf(node) !== -1)) {
@@ -238,7 +219,7 @@ owns: ''
 							// For range widgets, append aria-valuetext if non-empty, or aria-valuenow if non-empty, or node.value if applicable.
 							name = getObjectValue(nRole, node, true);
 						}
-						else if (isEditWidgetRole) {
+						else if (isEditWidgetRole || (nRole == 'combobox' && isNativeFormField)) {
 							// For simulated edit widgets, append text from content if applicable, or node.value if applicable.
 							name = getObjectValue(nRole, node, false, true);
 						}
@@ -251,7 +232,7 @@ owns: ''
 							// For native edit fields, append node.value when applicable.
 							name = getObjectValue(nRole, node, false, false, false, true);
 						}
-						else if (isNativeFormField && nTag === 'select' && (!isWidgetRole || ['combobox'].indexOf(nRole) !== -1)) {
+						else if (isNativeFormField && nTag === 'select' && (!isWidgetRole || nRole == 'combobox')) {
 							// For native select fields, get text from content for all options with selected attribute separated by a space when multiple, but don't process if another widget role is present unless it matches role="combobox".
 							// Reference: https://github.com/WhatSock/w3c-alternative-text-computation/issues/7
 							name = getObjectValue(nRole, node, false, false, true, true);
@@ -261,24 +242,31 @@ owns: ''
 						name = addSpacing(trim(name));
 
 					}
-				}
 
-				// Otherwise, if current node is non-presentational and has a non-empty aria-label then set as name and process no deeper.
-				if (!trim(name) && !rolePresentation && trim(aLabel) && !isSeparatChildFormField) {
-					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(trim(aLabel));
-
-					if (trim(name) && node === refNode) {
-						// If name is non-empty and both the current and refObject nodes match, then don't process any deeper.
-						skip = true;
+					if (trim(name)) {
+						hasName = true;
 					}
 				}
 
-				// Otherwise, if name is still empty and the current node is non-presentational and matches the ref node and is a standard form field with a non-empty associated label element, process label with same naming computation algorithm.
-				if (!trim(name) && !rolePresentation && node === refNode && isNativeFormField) {
+				// Otherwise, if current node has a non-empty aria-label then set as name and process no deeper within the branch.
+				if (!hasName && trim(aLabel) && !isSeparatChildFormField) {
+					// Check for blank value, since whitespace chars alone are not valid as a name
+					name = addSpacing(trim(aLabel));
 
-					/* Logic modified to match issue
-					https://github.com/WhatSock/w3c-alternative-text-computation/issues/12 */
+					if (trim(name)) {
+						hasName = true;
+						if (node === refNode) {
+							// If name is non-empty and both the current and refObject nodes match, then don't process any deeper within the branch.
+							skip = true;
+						}
+					}
+				}
+
+				// Otherwise, if name is still empty and the current node matches the ref node and is a standard form field with a non-empty associated label element, process label with same naming computation algorithm.
+				if (!hasName && node === refNode && isNativeFormField) {
+
+					// Logic modified to match issue
+					// https://github.com/WhatSock/w3c-alternative-text-computation/issues/12 */
 					var labels = document.querySelectorAll('label');
 					var implicitLabel = getParent(node, 'label') || false;
 					var explicitLabel = node.id && document.querySelectorAll('label[for="' + node.id + '"]').length ? document.querySelector('label[for="' + node.id + '"]') : false;
@@ -311,16 +299,24 @@ owns: ''
 						name = addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel})));
 					}
 
+					if (trim(name)) {
+						hasName = true;
+					}
 				}
 
+				var rolePresentation = !hasName && nRole && ['presentation', 'none'].indexOf(nRole) !== -1 && !isFocusable(node) && !hasGlobalAttr(node) ? true : false;
+
 				// Otherwise, if name is still empty and current node is non-presentational and is a standard img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
-				else if (!trim(name) && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && trim(node.getAttribute('alt'))) {
+				if (!hasName && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && trim(node.getAttribute('alt'))) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(node.getAttribute('alt')));
+					if (trim(name)) {
+						hasName = true;
+					}
 				}
 
 				// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
-				if (!trim(name) && !rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
+				if (!hasName && !rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					result.title = addSpacing(trim(nTitle));
 				}
@@ -352,9 +348,7 @@ target: element
 
 			// Otherwise, process text node
 			else if (node.nodeType === 3) {
-
 				name = node.data;
-
 			}
 
 			// Prepend and append the current CSS pseudo element text, plus normalize all whitespace such as newline characters and others into flat spaces.
@@ -375,6 +369,24 @@ target: element
 		return fullName;
 	};
 
+	var getRole = function(node) {
+		var role = node && node.getAttribute ? node.getAttribute('role') : '';
+		if (!trim(role)) {
+			return '';
+		}
+		var inList = function(list) {
+			return trim(role).length > 0 && list.roles.indexOf(role) >= 0;
+		};
+		var roles = role.split(/\s+/);
+		for (var i = 0; i < roles.length; i++) {
+role = roles[i];
+			if (inList(list1) || inList(list2) || inList(list3)) {
+				return role;
+			}
+		}
+		return '';
+	};
+
 	var isFocusable = function(node) {
 		var nodeName = node.nodeName.toLowerCase();
 		if (node.getAttribute('tabindex')) {
@@ -383,8 +395,46 @@ target: element
 		if (nodeName === 'a' && node.getAttribute('href')) {
 			return true;
 		}
-		if (['input', 'select', 'button'].indexOf(nodeName) !== -1 && node.getAttribute('type') !== 'hidden') {
+		if (['button', 'input', 'select'].indexOf(nodeName) !== -1 && node.getAttribute('type') !== 'hidden') {
 			return true;
+		}
+		return false;
+	};
+
+	// ARIA Role Exception Rule Set 1.1
+	// The following Role Exception Rule Set is based on the following ARIA Working Group discussion involving all relevant browser venders.
+	// https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
+
+	// Always include name from content when the referenced node matches list1, as well as when child nodes match those within list3
+	// Note: gridcell was added to list1 to account for focusable gridcells that match the ARIA 1.0 paradigm for interactive grids.
+	var list1 = {
+		roles: ['button', 'checkbox', 'link', 'option', 'radio', 'switch', 'tab', 'treeitem', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'cell', 'gridcell', 'columnheader', 'rowheader', 'tooltip', 'heading'],
+		tags: ['a', 'button', 'summary', 'input', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'menuitem', 'option', 'td', 'th']
+	};
+	// Never include name from content when current node matches list2
+	var list2 = {
+		roles: ['application', 'alert', 'log', 'marquee', 'timer', 'alertdialog', 'dialog', 'banner', 'complementary', 'form', 'main', 'navigation', 'region', 'search', 'article', 'document', 'feed', 'figure', 'img', 'math', 'toolbar', 'menu', 'menubar', 'grid', 'listbox', 'radiogroup', 'textbox', 'searchbox', 'spinbutton', 'scrollbar', 'slider', 'tablist', 'tabpanel', 'tree', 'treegrid', 'separator'],
+		tags: ['article', 'aside', 'body', 'select', 'datalist', 'optgroup', 'dialog', 'figure', 'footer', 'form', 'header', 'hr', 'img', 'textarea', 'input', 'main', 'math', 'menu', 'nav', 'section']
+	};
+	// As an override of list2, conditionally include name from content if current node is focusable, or if the current node matches list3 while the referenced parent node matches list1.
+	var list3 = {
+		roles: ['term', 'definition', 'directory', 'list', 'group', 'note', 'status', 'table', 'rowgroup', 'row', 'contentinfo'],
+		tags: ['dl', 'ul', 'ol', 'dd', 'details', 'output', 'table', 'thead', 'tbody', 'tfoot', 'tr']
+	};
+
+	var nativeFormFields = ['input', 'select', 'textarea'];
+	var rangeWidgetRoles = ['scrollbar', 'slider', 'spinbutton'];
+	var editWidgetRoles = ['searchbox', 'textbox'];
+	var selectWidgetRoles = ['grid', 'listbox', 'tablist', 'tree', 'treegrid'];
+	var otherWidgetRoles = ['button', 'checkbox', 'link', 'switch', 'option', 'menu', 'menubar', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'radio', 'tab', 'treeitem', 'gridcell'];
+
+	var hasGlobalAttr = function(node) {
+		var globalPropsAndStates = ['busy', 'controls', 'current', 'describedby', 'details', 'disabled', 'dropeffect', 'errormessage', 'flowto', 'grabbed', 'haspopup', 'invalid', 'keyshortcuts', 'live', 'owns', 'roledescription'];
+		for (var i = 0; i < globalPropsAndStates.length; i++) {
+			var a = trim(node.getAttribute('aria-' + globalPropsAndStates[i]));
+			if (a) {
+				return true;
+			}
 		}
 		return false;
 	};
@@ -449,10 +499,8 @@ target: element
 		return false;
 	};
 
-	/*
-	CSS Block Styles indexed from:
-	https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Block_formatting_context
-	*/
+	// CSS Block Styles indexed from:
+	// https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Block_formatting_context
 	var blockStyles = {
 		'display': ['block', 'grid', 'table', 'flow-root', 'flex'],
 		'position': ['absolute', 'fixed'],
@@ -465,13 +513,11 @@ target: element
 		'contain': ['layout', 'content', 'strict']
 	};
 
-	/*
-	HTML5 Block Elements indexed from:
-	https://github.com/webmodules/block-elements
-	Note: 'br' was added to this array because it impacts visual display and should thus add a space .
-	Reference issue: https://github.com/w3c/accname/issues/4
-Note: Added in 1.13, td, th, tr, and legend
-	*/
+	// HTML5 Block Elements indexed from:
+	// https://github.com/webmodules/block-elements
+	// Note: 'br' was added to this array because it impacts visual display and should thus add a space .
+	// Reference issue: https://github.com/w3c/accname/issues/4
+	// Note: Added in 1.13, td, th, tr, and legend
 	var blockElements = ['address', 'article', 'aside', 'blockquote', 'br', 'canvas', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'legend', 'li', 'main', 'nav', 'noscript', 'ol', 'output', 'p', 'pre', 'section', 'table', 'td', 'tfoot', 'th', 'tr', 'ul', 'video'];
 
 	var getObjectValue = function(role, node, isRange, isEdit, isSelect, isNative) {
@@ -526,7 +572,7 @@ Note: Added in 1.13, td, th, tr, and legend
 		}
 		var parts = [];
 		for (var i = 0; i < nOA.length; i++) {
-			var role = nOA[i].getAttribute('role');
+			var role = getRole(nOA[i]);
 			var isValidChildRole = !childRoles || childRoles.indexOf(role) !== -1;
 			if (isValidChildRole) {
 				parts.push(isNative ? getText(nOA[i]) : walk(nOA[i], true, false, [], false, {top: nOA[i]}));
@@ -598,13 +644,11 @@ Note: Added in 1.13, td, th, tr, and legend
 				node = node.parentNode;
 			}
 			if (node && node.getAttribute) {
-				if (['presentation', 'none'].indexOf(node.getAttribute('role')) === -1) {
-					if (!noLabel && node.getAttribute('aria-label')) {
-						return true;
-					}
-					if (isHidden(node, refNode)) {
-						return true;
-					}
+				if (!noLabel && node.getAttribute('aria-label')) {
+					return true;
+				}
+				if (isHidden(node, refNode)) {
+					return true;
 				}
 			}
 		}
@@ -626,40 +670,38 @@ Note: Added in 1.13, td, th, tr, and legend
 	var accName = walk(node, false, false, [], false, {top: node});
 
 	var accDesc = '';
-	if (['presentation', 'none'].indexOf(node.getAttribute('role')) === -1) {
-		// Check for blank value, since whitespace chars alone are not valid as a name
-		var title = trim(node.getAttribute('title'));
-		if (title) {
-			if (!trim(accName)) {
-				// Set accessible Name to title value as a fallback if no other labelling mechanism is available.
-				accName = title;
-			}
-			else if (accName.indexOf(title) === -1) {
-				// Otherwise, set Description using title attribute if available and including more than whitespace characters, but only if title is not already present within accName.
-				accDesc = title;
+	// Check for blank value, since whitespace chars alone are not valid as a name
+	var title = trim(node.getAttribute('title'));
+	if (title) {
+		if (!trim(accName)) {
+			// Set accessible Name to title value as a fallback if no other labelling mechanism is available.
+			accName = title;
+		}
+		else if (accName.indexOf(title) === -1) {
+			// Otherwise, set Description using title attribute if available and including more than whitespace characters, but only if title is not already present within accName.
+			accDesc = title;
+		}
+	}
+
+	// Compute accessible Description property value
+	var describedby = node.getAttribute('aria-describedby') || '';
+	if (describedby) {
+		var ids = describedby.split(/\s+/);
+		var parts = [];
+		for (var j = 0; j < ids.length; j++) {
+			var element = document.getElementById(ids[j]);
+			var eD = walk(element, true, false, [], false, {top: element});
+			if (accName.indexOf(eD) === -1) {
+				// Add aria-describedby reference to Description, but only if the returned value is not already included within accName.
+				parts.push(eD);
 			}
 		}
-
-		// Compute accessible Description property value
-		var describedby = node.getAttribute('aria-describedby') || '';
-		if (describedby) {
-			var ids = describedby.split(/\s+/);
-			var parts = [];
-			for (var j = 0; j < ids.length; j++) {
-				var element = document.getElementById(ids[j]);
-				var eD = walk(element, true, false, [], false, {top: element});
-				if (accName.indexOf(eD) === -1) {
-					// Add aria-describedby reference to Description, but only if the returned value is not already included within accName.
-					parts.push(eD);
-				}
-			}
-			// Check for blank value, since whitespace chars alone are not valid as a name
-			var desc = trim(parts.join(' '));
-			if (desc) {
-				// Set Description if computation includes more than whitespace characters.
-				// Note: Setting the Description property using computation from aria-describedby will overwrite any prior Description set using the title attribute.
-				accDesc = desc;
-			}
+		// Check for blank value, since whitespace chars alone are not valid as a name
+		var desc = trim(parts.join(' '));
+		if (desc) {
+			// Set Description if computation includes more than whitespace characters.
+			// Note: Setting the Description property using computation from aria-describedby will overwrite any prior Description set using the title attribute.
+			accDesc = desc;
 		}
 	}
 
@@ -689,12 +731,11 @@ Note: Added in 1.13, td, th, tr, and legend
 	}
 };
 
-
 // Customize returned string for testable statements
 
 var getNames = function(node) {
 	var props = calcNames(node);
-	return 'accName: "' + props.name + '"\n\naccDesc: "' + props.desc + '"\n\n(Running Name Computation Prototype version: ' + currentVersion + ')';
+	return 'accName: "' + props.name + '"\n\naccDesc: "' + props.desc + '"\n\n(Running AccName Computation Prototype version: ' + currentVersion + ')';
 };
 
 if (typeof module === 'object' && module.exports) {
