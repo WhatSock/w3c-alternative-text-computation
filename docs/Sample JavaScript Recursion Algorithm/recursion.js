@@ -1,4 +1,4 @@
-var currentVersion = '2.0';
+var currentVersion = '2.1';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -304,16 +304,25 @@ owns: ''
 					}
 				}
 
-				var rolePresentation = !hasName && nRole && ['presentation', 'none'].indexOf(nRole) !== -1 && !isFocusable(node) && !hasGlobalAttr(node) ? true : false;
-
-				// Otherwise, if name is still empty and current node is non-presentational and is a standard img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
-				if (!hasName && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && trim(node.getAttribute('alt'))) {
+				// Otherwise, if name is still empty and current node is a standard img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
+				if (!hasName && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && trim(node.getAttribute('alt'))) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					name = addSpacing(trim(node.getAttribute('alt')));
 					if (trim(name)) {
 						hasName = true;
 					}
 				}
+
+				// Otherwise, if name is still empty and current node is a standard img or image button with a non-empty title attribute, set title attribute value as the accessible name.
+				if (!hasName && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && trim(nTitle)) {
+					// Check for blank value, since whitespace chars alone are not valid as a name
+					name = addSpacing(trim(nTitle));
+					if (trim(name)) {
+						hasName = true;
+					}
+				}
+
+				var rolePresentation = !hasName && nRole && ['presentation', 'none'].indexOf(nRole) !== -1 && !isFocusable(node) && !hasGlobalAttr(node) ? true : false;
 
 				// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
 				if (!hasName && !rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
