@@ -1,4 +1,4 @@
-var currentVersion = '2.1';
+var currentVersion = '2.2';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -304,25 +304,17 @@ owns: ''
 					}
 				}
 
-				// Otherwise, if name is still empty and current node is a standard img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
-				if (!hasName && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && trim(node.getAttribute('alt'))) {
+				var rolePresentation = !hasName && nRole && presentationRoles.indexOf(nRole) !== -1 && !isFocusable(node) && !hasGlobalAttr(node) ? true : false;
+				var nAlt = rolePresentation ? '' : trim(node.getAttribute('alt'));
+
+				// Otherwise, if name is still empty and current node is a standard non-presentational img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
+				if (!hasName && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && nAlt) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(trim(node.getAttribute('alt')));
+					name = addSpacing(nAlt);
 					if (trim(name)) {
 						hasName = true;
 					}
 				}
-
-				// Otherwise, if name is still empty and current node is a standard img or image button with a non-empty title attribute, set title attribute value as the accessible name.
-				if (!hasName && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && trim(nTitle)) {
-					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(trim(nTitle));
-					if (trim(name)) {
-						hasName = true;
-					}
-				}
-
-				var rolePresentation = !hasName && nRole && ['presentation', 'none'].indexOf(nRole) !== -1 && !isFocusable(node) && !hasGlobalAttr(node) ? true : false;
 
 				// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
 				if (!hasName && !rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
@@ -389,7 +381,7 @@ target: element
 		var roles = role.split(/\s+/);
 		for (var i = 0; i < roles.length; i++) {
 role = roles[i];
-			if (inList(list1) || inList(list2) || inList(list3)) {
+			if (inList(list1) || inList(list2) || inList(list3) || presentationRoles.indexOf(role) !== -1) {
 				return role;
 			}
 		}
@@ -436,6 +428,7 @@ role = roles[i];
 	var editWidgetRoles = ['searchbox', 'textbox'];
 	var selectWidgetRoles = ['grid', 'listbox', 'tablist', 'tree', 'treegrid'];
 	var otherWidgetRoles = ['button', 'checkbox', 'link', 'switch', 'option', 'menu', 'menubar', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'radio', 'tab', 'treeitem', 'gridcell'];
+	var presentationRoles = ['presentation', 'none'];
 
 	var hasGlobalAttr = function(node) {
 		var globalPropsAndStates = ['busy', 'controls', 'current', 'describedby', 'details', 'disabled', 'dropeffect', 'errormessage', 'flowto', 'grabbed', 'haspopup', 'invalid', 'keyshortcuts', 'live', 'owns', 'roledescription'];
