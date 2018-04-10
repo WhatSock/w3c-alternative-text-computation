@@ -1,4 +1,4 @@
-var currentVersion = '2.2';
+var currentVersion = '2.3';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -24,7 +24,10 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 
 	// Recursively process a DOM node to compute an accessible name in accordance with the spec
 	var walk = function(refNode, stop, skip, nodesToIgnoreValues, skipAbort, ownedBy) {
-		var fullName = '';
+		var fullResult = {
+			name: '',
+			title: ''
+		};
 
 		/*
 		ARIA Role Exception Rule Set 1.1
@@ -99,40 +102,41 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 
 		// Recursively apply the same naming computation to all nodes within the referenced structure
 		var walkDOM = function(node, fn, refNode) {
+			var res = {
+				name: '',
+				title: ''
+			};
 			if (!node) {
-				return '';
+				return res;
 			}
-			var fName = '';
 			var nodeIsBlock = node && node.nodeType === 1 && isBlockLevelElement(node);
 			if (nodeIsBlock) {
-				fName = ' ';
+				res.name = ' ';
 			}
 			var fResult = fn(node) || {};
 			if (fResult.name && fResult.name.length) {
-				fName += fResult.name;
+				res.name += fResult.name;
 			}
 			if (!isException(node, ownedBy.top, ownedBy)) {
 				node = node.firstChild;
 				while (node) {
-					fName += walkDOM(node, fn, refNode);
+					res.name += walkDOM(node, fn, refNode).name;
 					node = node.nextSibling;
 				}
 			}
-			if (!trim(fName) && trim(fResult.title)) {
-				fName = fResult.title;
-			}
+			res.title = fResult.title;
 			if (nodeIsBlock) {
-				fName += ' ';
+				res.name += ' ';
 			}
-			fName += fResult.owns || '';
-			return fName;
+			res.name += fResult.owns || '';
+			return res;
 		};
 
-		fullName = walkDOM(refNode, function(node) {
+		fullResult = walkDOM(refNode, function(node) {
 			var result = {
-name: '',
-title: '',
-owns: ''
+				name: '',
+				title: '',
+				owns: ''
 			};
 			var isEmbeddedNode = node && node.nodeType === 1 && nodesToIgnoreValues && nodesToIgnoreValues.length && nodesToIgnoreValues.indexOf(node) !== -1 && node === topNode && node !== refNode ? true : false;
 
@@ -174,6 +178,7 @@ owns: ''
 			if (node.nodeType === 1) {
 
 				var aLabelledby = node.getAttribute('aria-labelledby') || '';
+				var aDescribedby = node.getAttribute('aria-describedby') || '';
 				var aLabel = node.getAttribute('aria-label') || '';
 				var nTitle = node.getAttribute('title') || '';
 				var nTag = node.nodeName.toLowerCase();
@@ -187,26 +192,50 @@ owns: ''
 				var isWidgetRole = isSimulatedFormField || otherWidgetRoles.indexOf(nRole) !== -1;
 
 				var hasName = false;
+				var hasDesc = false;
 				var aOwns = node.getAttribute('aria-owns') || '';
 				var isSeparatChildFormField = (!isEmbeddedNode && ((node !== refNode && (isNativeFormField || isSimulatedFormField)) || (node.id && ownedBy[node.id] && ownedBy[node.id].target && ownedBy[node.id].target === node))) ? true : false;
 
-				// Check for non-empty value of aria-labelledby if current node equals reference node, follow each ID ref, then stop and process no deeper.
-				if (!stop && node === refNode && aLabelledby) {
-					var ids = aLabelledby.split(/\s+/);
-					var parts = [];
-					for (var i = 0; i < ids.length; i++) {
-						var element = document.getElementById(ids[i]);
-						// Also prevent the current form field from having its value included in the naming computation if nested as a child of label
-						parts.push(walk(element, true, skip, [node], element === refNode, {ref: ownedBy, top: element}));
-					}
-					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(trim(parts.join(' ')));
+				if (!stop && node === refNode) {
 
-					if (trim(name)) {
-						hasName = true;
-						// Abort further recursion if name is valid.
-						skip = true;
+					// Check for non-empty value of aria-labelledby if current node equals reference node, follow each ID ref, then stop and process no deeper.
+					if (aLabelledby) {
+						var ids = aLabelledby.split(/\s+/);
+						var parts = [];
+						for (var i = 0; i < ids.length; i++) {
+							var element = document.getElementById(ids[i]);
+							// Also prevent the current form field from having its value included in the naming computation if nested as a child of label
+							parts.push(walk(element, true, skip, [node], element === refNode, {ref: ownedBy, top: element}).name);
+						}
+						// Check for blank value, since whitespace chars alone are not valid as a name
+						name = addSpacing(trim(parts.join(' ')));
+
+						if (trim(name)) {
+							hasName = true;
+							// Abort further recursion if name is valid.
+							skip = true;
+						}
 					}
+
+					// Check for non-empty value of aria-labelledby if current node equals reference node, follow each ID ref, then stop and process no deeper.
+					if (aDescribedby) {
+						var desc = '';
+						ids = aDescribedby.split(/\s+/);
+						var parts = [];
+						for (var i = 0; i < ids.length; i++) {
+							var element = document.getElementById(ids[i]);
+							// Also prevent the current form field from having its value included in the naming computation if nested as a child of label
+							parts.push(walk(element, true, false, [node], false, {ref: ownedBy, top: element}).name);
+						}
+						// Check for blank value, since whitespace chars alone are not valid as a name
+						desc = addSpacing(trim(parts.join(' ')));
+
+						if (trim(desc) || trim(nTitle)) {
+							hasDesc = true;
+							result.title = desc || nTitle;
+						}
+					}
+
 				}
 
 				// Otherwise, if the current node is a nested widget control within the parent ref obj, then add only its value and process no deeper within the branch.
@@ -284,19 +313,19 @@ owns: ''
 
 					if (implicitLabel && explicitLabel && isImplicitFirst) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}))) + addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel})));
+						name = addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}).name)) + addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}).name));
 					}
 					else if (explicitLabel && implicitLabel) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}))) + addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel})));
+						name = addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}).name)) + addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}).name));
 					}
 					else if (explicitLabel) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel})));
+						name = addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}).name));
 					}
 					else if (implicitLabel) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel})));
+						name = addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}).name));
 					}
 
 					if (trim(name)) {
@@ -316,10 +345,18 @@ owns: ''
 					}
 				}
 
-				// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
-				if (!hasName && !rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
-					// Check for blank value, since whitespace chars alone are not valid as a name
-					result.title = addSpacing(trim(nTitle));
+				if (!rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
+
+					// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
+					if (!hasName) {
+						// Check for blank value, since whitespace chars alone are not valid as a name
+						name = addSpacing(trim(nTitle));
+					}
+					else if (!hasDesc) {
+						// Check for blank value, since whitespace chars alone are not valid as a description
+						result.title = addSpacing(trim(nTitle));
+					}
+
 				}
 
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
@@ -338,7 +375,7 @@ owns: ''
 								node: node,
 target: element
 							};
-							parts.push(trim(walk(element, true, skip, [], false, oBy)));
+							parts.push(trim(walk(element, true, skip, [], false, oBy).name));
 						}
 					}
 					// Surround returned aria-owns naming computation with spaces since these will be separated visually if not already included as nested DOM nodes.
@@ -365,9 +402,9 @@ target: element
 		}, refNode);
 
 		// Prepend and append the refObj CSS pseudo element text, plus normalize whitespace chars into flat spaces.
-		fullName = cssOP.before + fullName.replace(/\s+/g, ' ') + cssOP.after;
+		fullResult.name = cssOP.before + fullResult.name.replace(/\s+/g, ' ') + cssOP.after;
 
-		return fullName;
+		return fullResult;
 	};
 
 	var getRole = function(node) {
@@ -577,7 +614,7 @@ role = roles[i];
 			var role = getRole(nOA[i]);
 			var isValidChildRole = !childRoles || childRoles.indexOf(role) !== -1;
 			if (isValidChildRole) {
-				parts.push(isNative ? getText(nOA[i]) : walk(nOA[i], true, false, [], false, {top: nOA[i]}));
+				parts.push(isNative ? getText(nOA[i]) : walk(nOA[i], true, false, [], false, {top: nOA[i]}).name);
 			}
 		}
 		return parts.join(' ');
@@ -668,47 +705,11 @@ role = roles[i];
 		return;
 	}
 
-	// Compute accessible Name property value for node
-	var accName = walk(node, false, false, [], false, {top: node});
+	// Compute accessible Name and Description properties value for node
+	var accProps = walk(node, false, false, [], false, {top: node});
 
-	var accDesc = '';
-	// Check for blank value, since whitespace chars alone are not valid as a name
-	var title = trim(node.getAttribute('title'));
-	if (title) {
-		if (!trim(accName)) {
-			// Set accessible Name to title value as a fallback if no other labelling mechanism is available.
-			accName = title;
-		}
-		else if (accName.indexOf(title) === -1) {
-			// Otherwise, set Description using title attribute if available and including more than whitespace characters, but only if title is not already present within accName.
-			accDesc = title;
-		}
-	}
-
-	// Compute accessible Description property value
-	var describedby = node.getAttribute('aria-describedby') || '';
-	if (describedby) {
-		var ids = describedby.split(/\s+/);
-		var parts = [];
-		for (var j = 0; j < ids.length; j++) {
-			var element = document.getElementById(ids[j]);
-			var eD = walk(element, true, false, [], false, {top: element});
-			if (accName.indexOf(eD) === -1) {
-				// Add aria-describedby reference to Description, but only if the returned value is not already included within accName.
-				parts.push(eD);
-			}
-		}
-		// Check for blank value, since whitespace chars alone are not valid as a name
-		var desc = trim(parts.join(' '));
-		if (desc) {
-			// Set Description if computation includes more than whitespace characters.
-			// Note: Setting the Description property using computation from aria-describedby will overwrite any prior Description set using the title attribute.
-			accDesc = desc;
-		}
-	}
-
-	accName = trim(accName.replace(/\s+/g, ' '));
-	accDesc = trim(accDesc.replace(/\s+/g, ' '));
+	accName = trim(accProps.name.replace(/\s+/g, ' '));
+	accDesc = trim(accProps.title.replace(/\s+/g, ' '));
 
 	if (accName === accDesc) {
 		// If both Name and Description properties match, then clear the Description property value.
