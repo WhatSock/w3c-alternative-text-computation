@@ -1,4 +1,4 @@
-var currentVersion = '2.4';
+var currentVersion = '2.5';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -126,11 +126,15 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					node = node.nextSibling;
 				}
 			}
-			res.title = fResult.title;
 			if (nodeIsBlock) {
 				res.name += ' ';
 			}
 			res.name += fResult.owns || '';
+			if (!trim(res.name) && trim(fResult.title) && !fResult.hasDesc) {
+				res.name = fResult.title;
+			} else {
+				res.title = fResult.title;
+			}
 			return res;
 		};
 
@@ -194,7 +198,6 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				var isWidgetRole = isSimulatedFormField || otherWidgetRoles.indexOf(nRole) !== -1;
 
 				var hasName = false;
-				var hasDesc = false;
 				var aOwns = node.getAttribute('aria-owns') || '';
 				var isSeparatChildFormField = (!isEmbeddedNode && ((node !== refNode && (isNativeFormField || isSimulatedFormField)) || (node.id && ownedBy[node.id] && ownedBy[node.id].target && ownedBy[node.id].target === node))) ? true : false;
 
@@ -233,7 +236,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 						desc = addSpacing(trim(parts.join(' ')));
 
 						if (trim(desc) || trim(nTitle)) {
-							hasDesc = true;
+							result.hasDesc = true;
 							result.title = desc || nTitle;
 						}
 					}
@@ -347,18 +350,12 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					}
 				}
 
+				// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
 				if (!rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
-
-					// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
 					if (!hasName) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(nTitle));
-					}
-					else if (!hasDesc) {
-						// Check for blank value, since whitespace chars alone are not valid as a description
 						result.title = addSpacing(trim(nTitle));
 					}
-
 				}
 
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
