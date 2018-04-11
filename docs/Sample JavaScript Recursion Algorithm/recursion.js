@@ -1,4 +1,4 @@
-var currentVersion = '2.3';
+var currentVersion = '2.4';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -12,8 +12,10 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
 
 // AccName Computation Prototype
 var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
+
+	var props = {name: '', desc: ''};
 	if (!node || node.nodeType !== 1) {
-		return;
+		return props;
 	}
 	var topNode = node;
 
@@ -702,7 +704,7 @@ role = roles[i];
 	};
 
 	if (isHidden(node, document.body) || hasParentLabel(node, true, document.body)) {
-		return;
+		return props;
 	}
 
 	// Compute accessible Name and Description properties value for node
@@ -716,11 +718,10 @@ role = roles[i];
 		accDesc = '';
 	}
 
-	var props = {
-		name: accName,
-		desc: accDesc
-	};
+	props.name = accName;
+	props.desc = accDesc;
 
+	// Clear track variables
 	nodes = [];
 	owns = [];
 
