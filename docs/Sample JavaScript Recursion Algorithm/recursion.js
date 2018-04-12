@@ -1,4 +1,4 @@
-var currentVersion = '2.5';
+var currentVersion = '2.6';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -350,12 +350,10 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					}
 				}
 
-				// Otherwise, if name is still empty and current node is non-presentational and includes a non-empty title attribute, set title attribute value as the accessible name.
+				// Otherwise, if current node is non-presentational and includes a non-empty title attribute and is not another form field, store title attribute value as the accessible name if name is still empty, or the description if not.
 				if (!rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
-					if (!hasName) {
-						// Check for blank value, since whitespace chars alone are not valid as a name
-						result.title = addSpacing(trim(nTitle));
-					}
+					// Check for blank value, since whitespace chars alone are not valid as a name
+					result.title = addSpacing(trim(nTitle));
 				}
 
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
