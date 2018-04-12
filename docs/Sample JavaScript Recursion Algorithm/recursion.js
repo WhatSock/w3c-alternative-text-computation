@@ -1,4 +1,4 @@
-var currentVersion = '2.7';
+var currentVersion = '2.8';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -130,10 +130,13 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				res.name += ' ';
 			}
 			res.name += fResult.owns || '';
-			if (!trim(res.name) && trim(fResult.title) && !fResult.hasDesc) {
+			if (!trim(res.name) && trim(fResult.title)) {
 				res.name = fResult.title;
 			} else {
 				res.title = fResult.title;
+			}
+			if (trim(fResult.desc)) {
+				res.title = fResult.desc;
 			}
 			return res;
 		};
@@ -235,9 +238,8 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
 						desc = addSpacing(trim(parts.join(' ')));
 
-						if (trim(desc) || trim(nTitle)) {
-							result.hasDesc = true;
-							result.title = desc || nTitle;
+						if (trim(desc)) {
+							result.desc = desc;
 						}
 					}
 
@@ -352,13 +354,8 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 
 				// Otherwise, if current node is non-presentational and includes a non-empty title attribute and is not another form field, store title attribute value as the accessible name if name is still empty, or the description if not.
 				if (!rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
-					if (!hasName) {
-						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(nTitle));
-					} else if (!result.hasDesc) {
-						// Check for blank value, since whitespace chars alone are not valid as a name
-						result.title = addSpacing(trim(nTitle));
-					}
+					// Check for blank value, since whitespace chars alone are not valid as a name
+					result.title = addSpacing(trim(nTitle));
 				}
 
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
