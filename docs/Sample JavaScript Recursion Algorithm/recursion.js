@@ -1,4 +1,4 @@
-var currentVersion = '2.8';
+var currentVersion = '2.9';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -111,10 +111,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			if (!node) {
 				return res;
 			}
-			var nodeIsBlock = node && node.nodeType === 1 && isBlockLevelElement(node);
-			if (nodeIsBlock) {
-				res.name = ' ';
-			}
+			var nodeIsBlock = node && node.nodeType === 1 && isBlockLevelElement(node) ? true : false;
 			var fResult = fn(node) || {};
 			if (fResult.name && fResult.name.length) {
 				res.name += fResult.name;
@@ -126,10 +123,10 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 					node = node.nextSibling;
 				}
 			}
-			if (nodeIsBlock) {
-				res.name += ' ';
-			}
 			res.name += fResult.owns || '';
+			if (nodeIsBlock) {
+				res.name = ' ' + res.name + ' ';
+			}
 			if (!trim(res.name) && trim(fResult.title)) {
 				res.name = fResult.title;
 			} else {
@@ -374,11 +371,11 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 								node: node,
 target: element
 							};
-							parts.push(trim(walk(element, true, skip, [], false, oBy).name));
+							parts.push(walk(element, true, skip, [], false, oBy).name);
 						}
 					}
-					// Surround returned aria-owns naming computation with spaces since these will be separated visually if not already included as nested DOM nodes.
-					ariaO = addSpacing(parts.join(' '));
+					// Join without adding whitespace since this is already handled by parsing individual nodes within the algorithm steps.
+					ariaO = parts.join('');
 				}
 
 			}
