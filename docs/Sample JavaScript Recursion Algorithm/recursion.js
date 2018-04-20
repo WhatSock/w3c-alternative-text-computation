@@ -1,4 +1,4 @@
-var currentVersion = '2.10';
+var currentVersion = '2.11';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -222,7 +222,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 						}
 					}
 
-					// Check for non-empty value of aria-labelledby if current node equals reference node, follow each ID ref, then stop and process no deeper.
+					// Check for non-empty value of aria-describedby if current node equals reference node, follow each ID ref, then stop and process no deeper.
 					if (aDescribedby) {
 						var desc = '';
 						ids = aDescribedby.split(/\s+/);
@@ -283,9 +283,12 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 
 				// Otherwise, if current node has a non-empty aria-label then set as name and process no deeper within the branch.
 				if (!hasName && trim(aLabel) && !isSeparatChildFormField) {
+					if (node === refNode) {
+						name = addSpacing(trim(aLabel));
+					} else {
+						name = aLabel;
+					}
 					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(trim(aLabel));
-
 					if (trim(name)) {
 						hasName = true;
 						if (node === refNode) {
