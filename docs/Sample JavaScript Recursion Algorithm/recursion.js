@@ -1,4 +1,4 @@
-var currentVersion = '2.9';
+var currentVersion = '2.10';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -371,7 +371,9 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 								node: node,
 target: element
 							};
-							parts.push(walk(element, true, skip, [], false, oBy).name);
+							if (!isHidden(element, refNode)) {
+								parts.push(walk(element, true, skip, [], false, oBy).name);
+							}
 						}
 					}
 					// Join without adding whitespace since this is already handled by parsing individual nodes within the algorithm steps.
@@ -475,23 +477,27 @@ role = roles[i];
 	};
 
 	var isHidden = function(node, refNode) {
-		if (node.nodeType !== 1 || node == refNode) {
-			return false;
+		var hidden = function(node) {
+			if (node.nodeType !== 1 || node == refNode) {
+				return false;
+			}
+			if (node.getAttribute('aria-hidden') === 'true') {
+				return true;
+			}
+			if (node.getAttribute('hidden')) {
+				return true;
+			}
+			var style = getStyleObject(node);
+			if (style['display'] === 'none' || style['visibility'] === 'hidden') {
+				return true;
+			}
 		}
-
-		if (node.getAttribute('aria-hidden') === 'true') {
-			return true;
+		while (node && node.nodeType === 1) {
+			if (hidden(node)) {
+				return true;
+			}
+			node = node.parentNode;
 		}
-
-		if (node.getAttribute('hidden')) {
-			return true;
-		}
-
-		var style = getStyleObject(node);
-		if (style['display'] === 'none' || style['visibility'] === 'hidden') {
-			return true;
-		}
-
 		return false;
 	};
 
