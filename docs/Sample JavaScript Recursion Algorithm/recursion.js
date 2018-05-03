@@ -1,4 +1,4 @@
-var currentVersion = '2.11';
+var currentVersion = '2.12';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -495,11 +495,8 @@ role = roles[i];
 				return true;
 			}
 		}
-		while (node && node.nodeType === 1) {
-			if (hidden(node)) {
-				return true;
-			}
-			node = node.parentNode;
+		if (hidden(node)) {
+			return true;
 		}
 		return false;
 	};
