@@ -124,16 +124,16 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				}
 			}
 			res.name += fResult.owns || '';
-			if (nodeIsBlock) {
-				res.name = ' ' + res.name + ' ';
-			}
 			if (!trim(res.name) && trim(fResult.title)) {
-				res.name = fResult.title;
+				res.name = addSpacing(fResult.title);
 			} else {
-				res.title = fResult.title;
+				res.title = addSpacing(fResult.title);
 			}
 			if (trim(fResult.desc)) {
-				res.title = fResult.desc;
+				res.title = addSpacing(fResult.desc);
+			}
+			if (nodeIsBlock || fResult.isWidget) {
+				res.name = addSpacing(res.name);
 			}
 			return res;
 		};
@@ -195,7 +195,8 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				var isEditWidgetRole = editWidgetRoles.indexOf(nRole) !== -1;
 				var isSelectWidgetRole = selectWidgetRoles.indexOf(nRole) !== -1;
 				var isSimulatedFormField = isRangeWidgetRole || isEditWidgetRole || isSelectWidgetRole || nRole == 'combobox';
-				var isWidgetRole = isSimulatedFormField || otherWidgetRoles.indexOf(nRole) !== -1;
+				var isWidgetRole = (isSimulatedFormField || otherWidgetRoles.indexOf(nRole) !== -1) && nRole != 'link';
+				result.isWidget = isNativeFormField || isWidgetRole;
 
 				var hasName = false;
 				var aOwns = node.getAttribute('aria-owns') || '';
@@ -213,7 +214,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 							parts.push(walk(element, true, skip, [node], element === refNode, {ref: ownedBy, top: element}).name);
 						}
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(parts.join(' ')));
+						name = trim(parts.join(' '));
 
 						if (trim(name)) {
 							hasName = true;
@@ -233,7 +234,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 							parts.push(walk(element, true, false, [node], false, {ref: ownedBy, top: element}).name);
 						}
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						desc = addSpacing(trim(parts.join(' ')));
+						desc = trim(parts.join(' '));
 
 						if (trim(desc)) {
 							result.desc = desc;
@@ -272,7 +273,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 						}
 
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(name));
+						name = trim(name);
 
 					}
 
@@ -282,12 +283,9 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				}
 
 				// Otherwise, if current node has a non-empty aria-label then set as name and process no deeper within the branch.
-				if (!hasName && trim(aLabel) && !isSeparatChildFormField) {
-					if (node === refNode) {
-						name = addSpacing(trim(aLabel));
-					} else {
-						name = aLabel;
-					}
+					if (!hasName && trim(aLabel) && !isSeparatChildFormField) {
+					name = aLabel;
+
 					// Check for blank value, since whitespace chars alone are not valid as a name
 					if (trim(name)) {
 						hasName = true;
@@ -320,19 +318,19 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 
 					if (implicitLabel && explicitLabel && isImplicitFirst) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}).name)) + addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}).name));
+						name = trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}).name + ' ' + walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}).name);
 					}
 					else if (explicitLabel && implicitLabel) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}).name)) + addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}).name));
+						name = trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}).name + ' ' + walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}).name);
 					}
 					else if (explicitLabel) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}).name));
+						name = trim(walk(explicitLabel, true, skip, [node], false, {ref: ownedBy, top: explicitLabel}).name);
 					}
 					else if (implicitLabel) {
 						// Check for blank value, since whitespace chars alone are not valid as a name
-						name = addSpacing(trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}).name));
+						name = trim(walk(implicitLabel, true, skip, [node], false, {ref: ownedBy, top: implicitLabel}).name);
 					}
 
 					if (trim(name)) {
@@ -346,16 +344,16 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 				// Otherwise, if name is still empty and current node is a standard non-presentational img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
 				if (!hasName && !rolePresentation && (nTag == 'img' || (nTag == 'input' && node.getAttribute('type') == 'image')) && nAlt) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
-					name = addSpacing(nAlt);
+					name = trim(nAlt);
 					if (trim(name)) {
 						hasName = true;
 					}
 				}
 
-				// Otherwise, if current node is non-presentational and includes a non-empty title attribute and is not another form field, store title attribute value as the accessible name if name is still empty, or the description if not.
+				// Otherwise, if current node is non-presentational and includes a non-empty title attribute and is not a separate embedded form field, store title attribute value as the accessible name if name is still empty, or the description if not.
 				if (!rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
 					// Check for blank value, since whitespace chars alone are not valid as a name
-					result.title = addSpacing(trim(nTitle));
+					result.title = trim(nTitle);
 				}
 
 				// Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
@@ -461,7 +459,7 @@ role = roles[i];
 		tags: ['dl', 'ul', 'ol', 'dd', 'details', 'output', 'table', 'thead', 'tbody', 'tfoot', 'tr']
 	};
 
-	var nativeFormFields = ['input', 'select', 'textarea'];
+	var nativeFormFields = ['button', 'input', 'select', 'textarea'];
 	var rangeWidgetRoles = ['scrollbar', 'slider', 'spinbutton'];
 	var editWidgetRoles = ['searchbox', 'textbox'];
 	var selectWidgetRoles = ['grid', 'listbox', 'tablist', 'tree', 'treegrid'];
@@ -494,11 +492,9 @@ role = roles[i];
 			if (style['display'] === 'none' || style['visibility'] === 'hidden') {
 				return true;
 			}
-		}
-		if (hidden(node)) {
-			return true;
-		}
-		return false;
+			return false;
+		};
+		return hidden(node);
 	};
 
 	var getStyleObject = function(node) {
@@ -603,8 +599,8 @@ role = roles[i];
 		return val;
 	};
 
-	var addSpacing = function(str) {
-		return str.length ? ' ' + str + ' ' : '';
+	var addSpacing = function(s) {
+		return trim(s).length ? ' ' + s + ' ' : ' ';
 	};
 
 	var joinSelectedParts = function(node, nOA, isNative, childRoles) {
