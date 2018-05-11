@@ -1,4 +1,4 @@
-var currentVersion = '2.12';
+var currentVersion = '2.13';
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -90,6 +90,17 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			after: ''
 		};
 
+		if (ownedBy.ref) {
+			if (isParentHidden(refNode, document.body, true, true)) {
+				// If referenced via aria-labelledby or aria-describedby, do not return a name or description if a parent node is hidden.
+				return fullResult;
+			}
+			else if (isHidden(refNode, document.body)) {
+				// Otherwise, if aria-labelledby or aria-describedby reference a node that is explicitly hidden, then process all children regardless of their individual hidden states.
+				var ignoreHidden = true;
+			}
+		}
+
 		if (nodes.indexOf(refNode) === -1) {
 			// Store the before and after pseudo element 'content' values for the top level DOM node
 			// Note: If the pseudo element includes block level styling, a space will be added, otherwise inline is asumed and no spacing is added.
@@ -146,7 +157,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 			};
 			var isEmbeddedNode = node && node.nodeType === 1 && nodesToIgnoreValues && nodesToIgnoreValues.length && nodesToIgnoreValues.indexOf(node) !== -1 && node === topNode && node !== refNode ? true : false;
 
-			if ((skip || !node || nodes.indexOf(node) !== -1 || (isHidden(node, ownedBy.top))) && !skipAbort && !isEmbeddedNode) {
+			if ((skip || !node || nodes.indexOf(node) !== -1 || (!ignoreHidden && isHidden(node, ownedBy.top))) && !skipAbort && !isEmbeddedNode) {
 				// Abort if algorithm step is already completed, or if node is a hidden child of refNode, or if this node has already been processed, or skip abort if aria-labelledby self references same node.
 				return result;
 			}
@@ -372,7 +383,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 								node: node,
 target: element
 							};
-							if (!isHidden(element, refNode)) {
+							if (!isParentHidden(element, document.body, true)) {
 								parts.push(walk(element, true, skip, [], false, oBy).name);
 							}
 						}
@@ -391,7 +402,7 @@ target: element
 			// Prepend and append the current CSS pseudo element text, plus normalize all whitespace such as newline characters and others into flat spaces.
 			name = cssO.before + name.replace(/\s+/g, ' ') + cssO.after;
 
-			if (name.length && !hasParentLabel(node, false, ownedBy.top, ownedBy)) {
+			if (name.length && !hasParentLabelOrHidden(node, ownedBy.top, ownedBy, ignoreHidden)) {
 				result.name = name;
 			}
 
@@ -495,6 +506,22 @@ role = roles[i];
 			return false;
 		};
 		return hidden(node);
+	};
+
+	var isParentHidden = function(node, refNode, skipOwned, skipCurrent) {
+		var trackNodes = [];
+		while (node && node !== refNode) {
+			if (!skipCurrent && node.nodeType === 1 && isHidden(node, refNode)) {
+				return true;
+			} else skipCurrent = false;
+			if (!skipOwned && node.id && ownedBy && ownedBy[node.id] && ownedBy[node.id].node && trackNodes.indexOf(node) === -1) {
+				trackNodes.push(node);
+				node = ownedBy[node.id].node;
+			} else {
+				node = node.parentNode;
+			}
+		}
+		return false;
 	};
 
 	var getStyleObject = function(node) {
@@ -671,7 +698,7 @@ role = roles[i];
 		return {};
 	};
 
-	var hasParentLabel = function(node, noLabel, refNode, ownedBy) {
+	var hasParentLabelOrHidden = function(node, refNode, ownedBy, ignoreHidden) {
 		var trackNodes = [];
 		while (node && node !== refNode) {
 				if (node.id && ownedBy && ownedBy[node.id] && ownedBy[node.id].node && trackNodes.indexOf(node) === -1) {
@@ -681,10 +708,7 @@ role = roles[i];
 				node = node.parentNode;
 			}
 			if (node && node.getAttribute) {
-				if (!noLabel && node.getAttribute('aria-label')) {
-					return true;
-				}
-				if (isHidden(node, refNode)) {
+				if (trim(node.getAttribute('aria-label')) || (!ignoreHidden && isHidden(node, refNode))) {
 					return true;
 				}
 			}
@@ -699,7 +723,7 @@ role = roles[i];
 		return str.replace(/^\s+|\s+$/g, '');
 	};
 
-	if (isHidden(node, document.body) || hasParentLabel(node, true, document.body)) {
+	if (isParentHidden(node, document.body, true)) {
 		return props;
 	}
 
