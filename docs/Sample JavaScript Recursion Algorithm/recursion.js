@@ -1,4 +1,4 @@
-var currentVersion = "2.14";
+var currentVersion = "2.15";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -38,10 +38,10 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
     };
 
     /*
-ARIA Role Exception Rule Set 1.1
-The following Role Exception Rule Set is based on the following ARIA Working Group discussion involving all relevant browser venders.
-https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
-*/
+  ARIA Role Exception Rule Set 1.1
+  The following Role Exception Rule Set is based on the following ARIA Working Group discussion involving all relevant browser venders.
+  https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
+  */
     var isException = function(node, refNode) {
       if (!refNode || !node || refNode.nodeType !== 1 || node.nodeType !== 1) {
         return false;
@@ -67,7 +67,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
           // Note: the inParent checker needs to be present to allow for embedded roles matching list3 when the referenced parent is referenced using aria-labelledby, aria-describedby, or aria-owns.
           return !(
             (inParent(node, ownedBy.top) &&
-              node.nodeName.toLowerCase() != "select") ||
+              node.nodeName.toLowerCase() !== "select") ||
             inList(refNode, list1)
           );
         }
@@ -184,6 +184,10 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
     fullResult = walkDOM(
       refNode,
       function(node) {
+        var i = 0;
+        var element = null;
+        var ids = [];
+        var parts = [];
         var result = {
           name: "",
           title: "",
@@ -260,6 +264,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
           var nRole = getRole(node);
 
           var isNativeFormField = nativeFormFields.indexOf(nTag) !== -1;
+          var isNativeButton = ["input"].indexOf(nTag) !== -1;
           var isRangeWidgetRole = rangeWidgetRoles.indexOf(nRole) !== -1;
           var isEditWidgetRole = editWidgetRoles.indexOf(nRole) !== -1;
           var isSelectWidgetRole = selectWidgetRoles.indexOf(nRole) !== -1;
@@ -267,10 +272,10 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
             isRangeWidgetRole ||
             isEditWidgetRole ||
             isSelectWidgetRole ||
-            nRole == "combobox";
+            nRole === "combobox";
           var isWidgetRole =
             (isSimulatedFormField || otherWidgetRoles.indexOf(nRole) !== -1) &&
-            nRole != "link";
+            nRole !== "link";
           result.isWidget = isNativeFormField || isWidgetRole;
 
           var hasName = false;
@@ -289,10 +294,10 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
           if (!stop && node === refNode) {
             // Check for non-empty value of aria-labelledby if current node equals reference node, follow each ID ref, then stop and process no deeper.
             if (aLabelledby) {
-              var ids = aLabelledby.split(/\s+/);
-              var parts = [];
-              for (var i = 0; i < ids.length; i++) {
-                var element = document.getElementById(ids[i]);
+              ids = aLabelledby.split(/\s+/);
+              parts = [];
+              for (i = 0; i < ids.length; i++) {
+                element = document.getElementById(ids[i]);
                 // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
                 parts.push(
                   walk(element, true, skip, [node], element === refNode, {
@@ -315,9 +320,9 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
             if (aDescribedby) {
               var desc = "";
               ids = aDescribedby.split(/\s+/);
-              var parts = [];
-              for (var i = 0; i < ids.length; i++) {
-                var element = document.getElementById(ids[i]);
+              parts = [];
+              for (i = 0; i < ids.length; i++) {
+                element = document.getElementById(ids[i]);
                 // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
                 parts.push(
                   walk(element, true, false, [node], false, {
@@ -350,7 +355,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
                 name = getObjectValue(nRole, node, true);
               } else if (
                 isEditWidgetRole ||
-                (nRole == "combobox" && isNativeFormField)
+                (nRole === "combobox" && isNativeFormField)
               ) {
                 // For simulated edit widgets, append text from content if applicable, or node.value if applicable.
                 name = getObjectValue(nRole, node, false, true);
@@ -368,7 +373,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
               } else if (
                 isNativeFormField &&
                 nTag === "select" &&
-                (!isWidgetRole || nRole == "combobox")
+                (!isWidgetRole || nRole === "combobox")
               ) {
                 // For native select fields, get text from content for all options with selected attribute separated by a space when multiple, but don't process if another widget role is present unless it matches role="combobox".
                 // Reference: https://github.com/WhatSock/w3c-alternative-text-computation/issues/7
@@ -411,7 +416,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
                 : false;
             var implicitI = 0;
             var explicitI = 0;
-            for (var i = 0; i < labels.length; i++) {
+            for (i = 0; i < labels.length; i++) {
               if (labels[i] === implicitLabel) {
                 implicitI = i;
               } else if (labels[i] === explicitLabel) {
@@ -476,6 +481,11 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
             }
           }
 
+          // Process native form field buttons in accordance with the HTML AAM
+          // https://w3c.github.io/html-aam/#accessible-name-and-description-computation
+          var btnType = (isNativeButton && node.getAttribute("type")) || false;
+          var btnValue = (btnType && trim(node.getAttribute("value"))) || false;
+
           var rolePresentation =
             !hasName &&
             nRole &&
@@ -490,8 +500,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
           if (
             !hasName &&
             !rolePresentation &&
-            (nTag == "img" ||
-              (nTag == "input" && node.getAttribute("type") == "image")) &&
+            (nTag === "img" || btnType === "image") &&
             nAlt
           ) {
             // Check for blank value, since whitespace chars alone are not valid as a name
@@ -499,6 +508,44 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
             if (trim(name)) {
               hasName = true;
             }
+          }
+
+          if (
+            !hasName &&
+            node === refNode &&
+            btnType &&
+            ["button", "image", "submit", "reset"].indexOf(btnType) !== -1
+          ) {
+            if (btnValue) {
+              name = btnValue;
+            } else {
+              switch (btnType) {
+                case "submit":
+                case "image":
+                  name = "Submit Query";
+                  break;
+                case "reset":
+                  name = "Reset";
+                  break;
+                default:
+                  name = "";
+              }
+            }
+            if (trim(name)) {
+              hasName = true;
+            }
+          }
+
+          if (
+            hasName &&
+            node === refNode &&
+            btnType &&
+            ["button", "submit", "reset"].indexOf(btnType) !== -1 &&
+            btnValue &&
+            btnValue !== name &&
+            !result.desc
+          ) {
+            result.desc = btnValue;
           }
 
           // Otherwise, if current node is non-presentational and includes a non-empty title attribute and is not a separate embedded form field, store title attribute value as the accessible name if name is still empty, or the description if not.
@@ -509,11 +556,11 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
 
           // Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
           // Also abort aria-owns processing if contained on an element that does not support child elements.
-          if (aOwns && !isNativeFormField && nTag != "img") {
-            var ids = aOwns.split(/\s+/);
-            var parts = [];
-            for (var i = 0; i < ids.length; i++) {
-              var element = document.getElementById(ids[i]);
+          if (aOwns && !isNativeFormField && nTag !== "img") {
+            ids = aOwns.split(/\s+/);
+            parts = [];
+            for (i = 0; i < ids.length; i++) {
+              element = document.getElementById(ids[i]);
               // Abort processing if the referenced node has already been traversed
               if (element && owns.indexOf(ids[i]) === -1) {
                 owns.push(ids[i]);
@@ -790,7 +837,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
 
   var isHidden = function(node, refNode) {
     var hidden = function(node) {
-      if (node.nodeType !== 1 || node == refNode) {
+      if (node.nodeType !== 1 || node === refNode) {
         return false;
       }
       if (node.getAttribute("aria-hidden") === "true") {
@@ -809,7 +856,6 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
   };
 
   var isParentHidden = function(node, refNode, skipOwned, skipCurrent) {
-    var trackNodes = [];
     while (node && node !== refNode) {
       if (!skipCurrent && node.nodeType === 1 && isHidden(node, refNode)) {
         return true;
@@ -952,13 +998,13 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
       val = getText(node) || "";
     } else if (isSelect && !isNative) {
       var childRoles = [];
-      if (role == "grid" || role == "treegrid") {
+      if (role === "grid" || role === "treegrid") {
         childRoles = ["gridcell", "rowheader", "columnheader"];
-      } else if (role == "listbox") {
+      } else if (role === "listbox") {
         childRoles = ["option"];
-      } else if (role == "tablist") {
+      } else if (role === "tablist") {
         childRoles = ["tab"];
-      } else if (role == "tree") {
+      } else if (role === "tree") {
         childRoles = ["treeitem"];
       }
       val = joinSelectedParts(
@@ -996,7 +1042,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
     if (!nOA || !nOA.length) {
       return "";
     }
-    var parts = [];
+    let parts = [];
     for (var i = 0; i < nOA.length; i++) {
       var role = getRole(nOA[i]);
       var isValidChildRole = !childRoles || childRoles.indexOf(role) !== -1;
@@ -1021,7 +1067,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
     styleObj["content"] = document.defaultView
       .getComputedStyle(node, position)
       .getPropertyValue("content")
-      .replace(/^\"|\\|\"$/g, "");
+      .replace(/^"|\\|"$/g, "");
     return styleObj;
   };
 
@@ -1035,9 +1081,9 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
       return "";
     }
     if (isBlockLevelElement({}, styles)) {
-      if (position == ":before") {
+      if (position === ":before") {
         text += " ";
-      } else if (position == ":after") {
+      } else if (position === ":after") {
         text = " " + text;
       }
     }
@@ -1047,7 +1093,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
   var getCSSText = function(node, refNode) {
     if (
       (node && node.nodeType !== 1) ||
-      node == refNode ||
+      node === refNode ||
       ["input", "select", "textarea", "img", "iframe"].indexOf(
         node.nodeName.toLowerCase()
       ) !== -1
@@ -1067,7 +1113,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
   var getParent = function(node, nTag) {
     while (node) {
       node = node.parentNode;
-      if (node && node.nodeName && node.nodeName.toLowerCase() == nTag) {
+      if (node && node.nodeName && node.nodeName.toLowerCase() === nTag) {
         return node;
       }
     }
@@ -1130,7 +1176,7 @@ https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
   nodes = [];
   owns = [];
 
-  if (fnc && typeof fnc == "function") {
+  if (fnc && typeof fnc === "function") {
     return fnc.apply(node, [node, props]);
   } else {
     return props;
