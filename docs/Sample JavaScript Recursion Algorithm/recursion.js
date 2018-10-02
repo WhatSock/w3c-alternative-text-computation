@@ -1,4 +1,4 @@
-var currentVersion = "2.16";
+var currentVersion = "2.17";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -16,7 +16,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
   if (!node || node.nodeType !== 1) {
     return props;
   }
-  var topNode = node;
+  var rootNode = node;
 
   // Track nodes to prevent duplicate node reference parsing.
   var nodes = [];
@@ -75,7 +75,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
       // Otherwise process list2 to identify roles to ignore processing name from content.
       else if (
         inList(node, list2) ||
-        (node === topNode && !inList(node, list1))
+        (node === rootNode && !inList(node, list1))
       ) {
         return true;
       } else {
@@ -167,9 +167,9 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
         }
       }
       res.name += fResult.owns || "";
-      if (!trim(res.name) && trim(fResult.title)) {
+      if (rootNode === node && !trim(res.name) && trim(fResult.title)) {
         res.name = addSpacing(fResult.title);
-      } else {
+      } else if (refNode === node && rootNode === node) {
         res.title = addSpacing(fResult.title);
       }
       if (trim(fResult.desc)) {
@@ -199,7 +199,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
           nodesToIgnoreValues &&
           nodesToIgnoreValues.length &&
           nodesToIgnoreValues.indexOf(node) !== -1 &&
-          node === topNode &&
+          node === rootNode &&
           node !== refNode
             ? true
             : false;
@@ -432,48 +432,31 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
                 ? true
                 : false;
 
-            if (implicitLabel && explicitLabel && isImplicitFirst) {
-              // Check for blank value, since whitespace chars alone are not valid as a name
-              name = trim(
-                walk(implicitLabel, true, skip, [node], false, {
-                  ref: ownedBy,
-                  top: implicitLabel
-                }).name +
-                  " " +
-                  walk(explicitLabel, true, skip, [node], false, {
-                    ref: ownedBy,
-                    top: explicitLabel
-                  }).name
-              );
-            } else if (explicitLabel && implicitLabel) {
-              // Check for blank value, since whitespace chars alone are not valid as a name
-              name = trim(
-                walk(explicitLabel, true, skip, [node], false, {
-                  ref: ownedBy,
-                  top: explicitLabel
-                }).name +
-                  " " +
-                  walk(implicitLabel, true, skip, [node], false, {
-                    ref: ownedBy,
-                    top: implicitLabel
-                  }).name
-              );
-            } else if (explicitLabel) {
-              // Check for blank value, since whitespace chars alone are not valid as a name
-              name = trim(
+            if (explicitLabel) {
+              var eLblName = trim(
                 walk(explicitLabel, true, skip, [node], false, {
                   ref: ownedBy,
                   top: explicitLabel
                 }).name
               );
-            } else if (implicitLabel) {
-              // Check for blank value, since whitespace chars alone are not valid as a name
-              name = trim(
+            }
+            if (implicitLabel && implicitLabel !== explicitLabel) {
+              var iLblName = trim(
                 walk(implicitLabel, true, skip, [node], false, {
                   ref: ownedBy,
                   top: implicitLabel
                 }).name
               );
+            }
+
+            if (iLblName && eLblName && isImplicitFirst) {
+              name = iLblName + " " + eLblName;
+            } else if (eLblName && iLblName) {
+              name = eLblName + " " + iLblName;
+            } else if (eLblName) {
+              name = eLblName;
+            } else if (iLblName) {
+              name = iLblName;
             }
 
             if (trim(name)) {
@@ -548,11 +531,14 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
             result.desc = btnValue;
           }
 
-          // Otherwise, if current node is non-presentational and includes a non-empty title attribute and is not a separate embedded form field, store title attribute value as the accessible name if name is still empty, or the description if not.
-          if (!rolePresentation && trim(nTitle) && !isSeparatChildFormField) {
-            if (node === refNode) {
-              result.title = trim(nTitle);
-            }
+          // Otherwise, if current node is the same as rootNode and is non-presentational and includes a non-empty title attribute and is not a separate embedded form field, store title attribute value as the accessible name if name is still empty, or the description if not.
+          if (
+            node === rootNode &&
+            !rolePresentation &&
+            trim(nTitle) &&
+            !isSeparatChildFormField
+          ) {
+            result.title = trim(nTitle);
           }
 
           // Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
