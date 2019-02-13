@@ -1,4 +1,4 @@
-var currentVersion = "2.17";
+var currentVersion = "2.18";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -538,7 +538,9 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
             trim(nTitle) &&
             !isSeparatChildFormField
           ) {
-            result.title = trim(nTitle);
+            if (!hasName) name = trim(nTitle);
+            else result.title = trim(nTitle);
+            if (trim(name)) hasName = true;
           }
 
           // Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
