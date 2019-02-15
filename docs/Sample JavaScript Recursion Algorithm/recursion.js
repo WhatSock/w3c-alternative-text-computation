@@ -1,4 +1,4 @@
-var currentVersion = "2.18";
+var currentVersion = "2.19";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -167,12 +167,12 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
         }
       }
       res.name += fResult.owns || "";
-      if (rootNode === node && !trim(res.name) && trim(fResult.title)) {
+      if (rootNode === refNode && !trim(res.name) && trim(fResult.title)) {
         res.name = addSpacing(fResult.title);
-      } else if (refNode === node && rootNode === node) {
+      } else if (rootNode === refNode && trim(fResult.title)) {
         res.title = addSpacing(fResult.title);
       }
-      if (trim(fResult.desc)) {
+      if (rootNode === refNode && trim(fResult.desc)) {
         res.title = addSpacing(fResult.desc);
       }
       if (nodeIsBlock || fResult.isWidget) {
@@ -538,9 +538,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
             trim(nTitle) &&
             !isSeparatChildFormField
           ) {
-            if (!hasName) name = trim(nTitle);
-            else result.title = trim(nTitle);
-            if (trim(name)) hasName = true;
+            result.title = trim(nTitle);
           }
 
           // Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
