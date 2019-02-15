@@ -1031,7 +1031,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
     if (!nOA || !nOA.length) {
       return "";
     }
-    let parts = [];
+    var parts = [];
     for (var i = 0; i < nOA.length; i++) {
       var role = getRole(nOA[i]);
       var isValidChildRole = !childRoles || childRoles.indexOf(role) !== -1;
