@@ -1,4 +1,4 @@
-var currentVersion = "2.19";
+var currentVersion = "2.20";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -824,7 +824,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 
   var isHidden = function(node, refNode) {
     var hidden = function(node) {
-      if (node.nodeType !== 1 || node === refNode) {
+      if (!node || node.nodeType !== 1 || node === refNode) {
         return false;
       }
       if (node.getAttribute("aria-hidden") === "true") {
