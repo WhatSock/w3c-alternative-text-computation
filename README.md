@@ -4,6 +4,9 @@ A functional prototype for the W3C Alternative Text Computation.
 The Accessible Name Computation Prototype
 -----
 
+Live AccName Test Page
+https://whatsock.github.io/w3c-alternative-text-computation/Editable%20Live%20Input%20AccName%20Test.html
+
 For testing purposes, a naming computation algorithm has been created using JavaScript for the purpose of simulating the accessible name computation that browsers should be reflecting in the accessibility tree, which has been constructed in accordance with the W3C AccName specification at
 http://www.w3.org/TR/accname-aam-1.1/
 
