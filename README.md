@@ -7,6 +7,27 @@ The Accessible Name Computation Prototype
 Live AccName Test Page
 https://whatsock.github.io/w3c-alternative-text-computation/Editable%20Live%20Input%20AccName%20Test.html
 
+The AccName Prototype algorithm code is contained in the file "recursion.js" in the folder "docs/Sample JavaScript Recursion Algorithm", which can be remotely loaded into any project using JavaScript like so.
+
+```
+<script type="text/javascript" src="https://whatsock.github.io/w3c-alternative-text-computation/Sample%20JavaScript%20Recursion%20Algorithm/recursion.js"></script>
+```
+
+Usage:
+
+  var props = calcNames(elementNode); // Generate the Name and Description properties of an element. ( props.name and props.desc )
+
+alert(props.name); // Show accessible Name property
+
+alert(props.desc); // Show accessible Description property
+
+alert(props.error); // Show error if one is generated. 
+
+The props.error property only populates if the code throws a syntax error. (These should always be reported here as a new issue when discovered.)
+
+Project Details
+-----
+
 For testing purposes, a naming computation algorithm has been created using JavaScript for the purpose of simulating the accessible name computation that browsers should be reflecting in the accessibility tree, which has been constructed in accordance with the W3C AccName specification at
 http://www.w3.org/TR/accname-aam-1.1/
 
