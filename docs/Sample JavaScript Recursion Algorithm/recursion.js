@@ -1187,7 +1187,7 @@ window.getAccName = calcNames = function(
   }
 
   if (fnc && typeof fnc === "function") {
-    return fnc.apply(node, [props]);
+    return fnc.apply(node, [props, node]);
   } else {
     return props;
   }

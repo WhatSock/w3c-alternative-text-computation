@@ -13,6 +13,12 @@ The AccName Prototype algorithm code is contained in the file "recursion.js" in 
 <script type="text/javascript" src="https://whatsock.github.io/w3c-alternative-text-computation/Sample%20JavaScript%20Recursion%20Algorithm/recursion.js"></script>
 ```
 
+Or the same, but compressed for faster loading.
+
+```
+<script type="text/javascript" src="https://whatsock.github.io/w3c-alternative-text-computation/Sample%20JavaScript%20Recursion%20Algorithm/recursion.min.js"></script>
+```
+
 Usage:
 
 ```
@@ -31,14 +37,15 @@ alert(props.desc); // Show accessible Description property
 alert(props.error); // Show error if one is generated. 
 ```
 
-The props.error property only populates if the code throws a syntax error. (These should always be reported here as a new issue when discovered.)
+The props.error property only populates if the code throws a syntax error. (These should always be reported here as a new issue when discovered.
+https://github.com/whatsock/w3c-alternative-text-computation/issues )
 
 Secondary Usage:
 
 ```
-getAccName( elementNode, function( props ) {
-    alert(props.name); // Show accessible Name property
-    alert(props.desc); // Show accessible Description property
+getAccName( elementNode, function( props, rootNode ) {
+    alert(props.name); // Show accessible Name property for rootNode
+    alert(props.desc); // Show accessible Description property for rootNode
     alert(props.error); // Show error if one is generated.  
 });
 ```
