@@ -15,15 +15,33 @@ The AccName Prototype algorithm code is contained in the file "recursion.js" in 
 
 Usage:
 
-  var props = calcNames(elementNode); // Generate the Name and Description properties of an element. ( props.name and props.desc )
+```
+  var props = getAccName(elementNode); // Generate the Name and Description properties of an element. ( props.name and props.desc )
+```
 
+```
 alert(props.name); // Show accessible Name property
+```
 
+```
 alert(props.desc); // Show accessible Description property
+```
 
+```
 alert(props.error); // Show error if one is generated. 
+```
 
 The props.error property only populates if the code throws a syntax error. (These should always be reported here as a new issue when discovered.)
+
+Secondary Usage:
+
+```
+getAccName( elementNode, function( props ) {
+    alert(props.name); // Show accessible Name property
+    alert(props.desc); // Show accessible Description property
+    alert(props.error); // Show error if one is generated.  
+});
+```
 
 Project Details
 -----

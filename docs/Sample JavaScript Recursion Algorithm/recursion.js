@@ -1,4 +1,4 @@
-var currentVersion = "2.20";
+window.getAccNameVersion = "2.20";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -11,7 +11,11 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
 */
 
 // AccName Computation Prototype
-var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
+window.getAccName = calcNames = function(
+  node,
+  fnc,
+  preventVisualARIASelfCSSRef
+) {
   var props = { name: "", desc: "", error: "" };
   try {
     if (!node || node.nodeType !== 1) {
@@ -1183,7 +1187,7 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
   }
 
   if (fnc && typeof fnc === "function") {
-    return fnc.apply(node, [node, props]);
+    return fnc.apply(node, [props]);
   } else {
     return props;
   }
@@ -1191,14 +1195,14 @@ var calcNames = function(node, fnc, preventVisualARIASelfCSSRef) {
 
 // Customize returned string for testable statements
 
-var getNames = function(node) {
+window.getAccNameMsg = getNames = function(node) {
   var props = calcNames(node);
   if (props.error) {
     return (
       props.error +
       "\n\n" +
       "An error has been thrown in AccName Prototype version " +
-      currentVersion +
+      window.getAccNameVersion +
       ". Please copy this error message and the HTML markup that caused it, and submit both as a new GitHub issue at\n" +
       "https://github.com/whatsock/w3c-alternative-text-computation"
     );
@@ -1209,7 +1213,7 @@ var getNames = function(node) {
       '"\n\naccDesc: "' +
       props.desc +
       '"\n\n(Running AccName Computation Prototype version: ' +
-      currentVersion +
+      window.getAccNameVersion +
       ")"
     );
   }
