@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.20";
+window.getAccNameVersion = "2.21";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -657,6 +657,7 @@ window.getAccName = calcNames = function(
 
     // Always include name from content when the referenced node matches list1, as well as when child nodes match those within list3
     // Note: gridcell was added to list1 to account for focusable gridcells that match the ARIA 1.0 paradigm for interactive grids.
+    // So too was row to match 'name from author' and 'name from content' in accordance with the spec.
     var list1 = {
       roles: [
         "button",
@@ -670,6 +671,7 @@ window.getAccName = calcNames = function(
         "menuitem",
         "menuitemcheckbox",
         "menuitemradio",
+        "row",
         "cell",
         "gridcell",
         "columnheader",
@@ -690,11 +692,13 @@ window.getAccName = calcNames = function(
         "h6",
         "menuitem",
         "option",
+        "tr",
         "td",
         "th"
       ]
     };
     // Never include name from content when current node matches list2
+    // The rowgroup role was added to prevent 'name from content' in accordance with relevant ARIA 1.1 spec changes.
     var list2 = {
       roles: [
         "application",
@@ -732,7 +736,8 @@ window.getAccName = calcNames = function(
         "tabpanel",
         "tree",
         "treegrid",
-        "separator"
+        "separator",
+        "rowgroup"
       ],
       tags: [
         "article",
@@ -754,10 +759,13 @@ window.getAccName = calcNames = function(
         "math",
         "menu",
         "nav",
-        "section"
+        "section",
+        "thead",
+        "tbody",
+        "tfoot"
       ]
     };
-    // As an override of list2, conditionally include name from content if current node is focusable, or if the current node matches list3 while the referenced parent node matches list1.
+    // As an override of list2, conditionally include name from content if current node is focusable, or if the current node matches list3 while the referenced parent node (root node) matches list1.
     var list3 = {
       roles: [
         "term",
@@ -768,23 +776,9 @@ window.getAccName = calcNames = function(
         "note",
         "status",
         "table",
-        "rowgroup",
-        "row",
         "contentinfo"
       ],
-      tags: [
-        "dl",
-        "ul",
-        "ol",
-        "dd",
-        "details",
-        "output",
-        "table",
-        "thead",
-        "tbody",
-        "tfoot",
-        "tr"
-      ]
+      tags: ["dl", "ul", "ol", "dd", "details", "output", "table"]
     };
 
     var nativeFormFields = ["button", "input", "select", "textarea"];
@@ -901,7 +895,7 @@ window.getAccName = calcNames = function(
               [values[i].slice(1), "inherit", "initial", "unset"].indexOf(
                 styleObject[prop]
               ) === -1) ||
-              styleObject[prop].indexOf(values[i]) !== -1)
+              styleObject[prop].indexOf(values[i]) === 0)
           ) {
             return true;
           }
@@ -910,7 +904,11 @@ window.getAccName = calcNames = function(
       if (
         !cssObj &&
         node.nodeName &&
-        blockElements.indexOf(node.nodeName.toLowerCase()) !== -1
+        blockElements.indexOf(node.nodeName.toLowerCase()) !== -1 &&
+        !(
+          styleObject["display"] &&
+          styleObject["display"].indexOf("inline") === 0
+        )
       ) {
         return true;
       }
