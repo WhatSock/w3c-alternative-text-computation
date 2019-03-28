@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.21";
+window.getAccNameVersion = "2.22";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -907,7 +907,8 @@ window.getAccName = calcNames = function(
         blockElements.indexOf(node.nodeName.toLowerCase()) !== -1 &&
         !(
           styleObject["display"] &&
-          styleObject["display"].indexOf("inline") === 0
+          styleObject["display"].indexOf("inline") === 0 &&
+          node.nodeName.toLowerCase() !== "br"
         )
       ) {
         return true;
