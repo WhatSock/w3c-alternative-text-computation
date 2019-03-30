@@ -11,7 +11,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
 */
 
 // AccName Computation Prototype
-window.getAccName = calcNames = function(
+window.getAccName = window.calcNames = function(
   node,
   fnc,
   preventVisualARIASelfCSSRef
@@ -1194,8 +1194,8 @@ window.getAccName = calcNames = function(
 
 // Customize returned string for testable statements
 
-window.getAccNameMsg = getNames = function(node) {
-  var props = calcNames(node);
+window.getAccNameMsg = window.getNames = function(node) {
+  var props = window.calcNames(node);
   if (props.error) {
     return (
       props.error +
@@ -1220,7 +1220,7 @@ window.getAccNameMsg = getNames = function(node) {
 
 if (typeof module === "object" && module.exports) {
   module.exports = {
-    getNames: getNames,
-    calcNames: calcNames
+    getNames: window.getNames,
+    calcNames: window.calcNames
   };
 }
