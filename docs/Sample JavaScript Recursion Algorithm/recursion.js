@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.22";
+window.getAccNameVersion = "2.23";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -35,8 +35,13 @@ window.getAccName = window.calcNames = function(
       skip,
       nodesToIgnoreValues,
       skipAbort,
-      ownedBy
+      ownedBy,
+      skipTo
     ) {
+      skipTo = skipTo || {};
+      skipTo.tag = skipTo.tag || false;
+      skipTo.role = skipTo.role || false;
+      skipTo.go = skipTo.go || false;
       var fullResult = {
         name: "",
         title: ""
@@ -46,6 +51,7 @@ window.getAccName = window.calcNames = function(
   ARIA Role Exception Rule Set 1.1
   The following Role Exception Rule Set is based on the following ARIA Working Group discussion involving all relevant browser venders.
   https://lists.w3.org/Archives/Public/public-aria/2017Jun/0057.html
+Plus roles extended for the Role Parity project.
   */
       var isException = function(node, refNode) {
         if (
@@ -84,8 +90,9 @@ window.getAccName = window.calcNames = function(
         }
         // Otherwise process list2 to identify roles to ignore processing name from content.
         else if (
-          inList(node, list2) ||
-          (node === rootNode && !inList(node, list1))
+          (inList(node, list2) ||
+            (node === rootNode && !inList(node, list1))) &&
+          !skipTo.go
         ) {
           return true;
         } else {
@@ -132,7 +139,7 @@ window.getAccName = window.calcNames = function(
         }
       }
 
-      if (nodes.indexOf(refNode) === -1) {
+      if (!skipTo.tag && !skipTo.role && nodes.indexOf(refNode) === -1) {
         // Store the before and after pseudo element 'content' values for the top level DOM node
         // Note: If the pseudo element includes block level styling, a space will be added, otherwise inline is asumed and no spacing is added.
         cssOP = getCSSText(refNode, null);
@@ -171,7 +178,8 @@ window.getAccName = window.calcNames = function(
         if (fResult.name && fResult.name.length) {
           res.name += fResult.name;
         }
-        if (!isException(node, ownedBy.top, ownedBy)) {
+        if (!isException(node, ownedBy.top)) {
+          if (skipTo.go) skipTo.go = false;
           node = node.firstChild;
           while (node) {
             res.name += walkDOM(node, fn, refNode).name;
@@ -228,7 +236,7 @@ window.getAccName = window.calcNames = function(
             return result;
           }
 
-          if (nodes.indexOf(node) === -1) {
+          if (!skipTo.tag && !skipTo.role && nodes.indexOf(node) === -1) {
             nodes.push(node);
           }
 
@@ -243,7 +251,7 @@ window.getAccName = window.calcNames = function(
           };
 
           var parent = refNode === node ? node : node.parentNode;
-          if (nodes.indexOf(parent) === -1) {
+          if (!skipTo.tag && !skipTo.role && nodes.indexOf(parent) === -1) {
             nodes.push(parent);
             // Store the before and after pseudo element 'content' values for the current node container element
             // Note: If the pseudo element includes block level styling, a space will be added, otherwise inline is asumed and no spacing is added.
@@ -268,12 +276,25 @@ window.getAccName = window.calcNames = function(
 
           // Process standard DOM element node
           if (node.nodeType === 1) {
-            var aLabelledby = node.getAttribute("aria-labelledby") || "";
-            var aDescribedby = node.getAttribute("aria-describedby") || "";
-            var aLabel = node.getAttribute("aria-label") || "";
-            var nTitle = node.getAttribute("title") || "";
             var nTag = node.nodeName.toLowerCase();
             var nRole = getRole(node);
+            var aLabelledby =
+              (!skipTo.tag &&
+                !skipTo.role &&
+                node.getAttribute("aria-labelledby")) ||
+              "";
+            var aDescribedby =
+              (!skipTo.tag &&
+                !skipTo.role &&
+                node.getAttribute("aria-describedby")) ||
+              "";
+            var aLabel =
+              (!skipTo.tag &&
+                !skipTo.role &&
+                node.getAttribute("aria-label")) ||
+              "";
+            var nTitle =
+              (!skipTo.tag && !skipTo.role && node.getAttribute("title")) || "";
 
             var isNativeFormField = nativeFormFields.indexOf(nTag) !== -1;
             var isNativeButton = ["input"].indexOf(nTag) !== -1;
@@ -294,6 +315,8 @@ window.getAccName = window.calcNames = function(
             var hasName = false;
             var aOwns = node.getAttribute("aria-owns") || "";
             var isSeparatChildFormField =
+              !skipTo.tag &&
+              !skipTo.role &&
               !isEmbeddedNode &&
               ((node !== refNode &&
                 (isNativeFormField || isSimulatedFormField)) ||
@@ -306,7 +329,7 @@ window.getAccName = window.calcNames = function(
 
             if (!stop && node === refNode) {
               // Check for non-empty value of aria-labelledby if current node equals reference node, follow each ID ref, then stop and process no deeper.
-              if (aLabelledby) {
+              if (!skipTo.tag && !skipTo.role && aLabelledby) {
                 ids = aLabelledby.split(/\s+/);
                 parts = [];
                 for (i = 0; i < ids.length; i++) {
@@ -330,7 +353,7 @@ window.getAccName = window.calcNames = function(
               }
 
               // Check for non-empty value of aria-describedby if current node equals reference node, follow each ID ref, then stop and process no deeper.
-              if (aDescribedby) {
+              if (!skipTo.tag && !skipTo.role && aDescribedby) {
                 var desc = "";
                 ids = aDescribedby.split(/\s+/);
                 parts = [];
@@ -354,7 +377,7 @@ window.getAccName = window.calcNames = function(
             }
 
             // Otherwise, if the current node is a nested widget control within the parent ref obj, then add only its value and process no deeper within the branch.
-            if (isSeparatChildFormField) {
+            if (!skipTo.tag && !skipTo.role && isSeparatChildFormField) {
               // Prevent the referencing node from having its value included in the case of form control labels that contain the element with focus.
               if (
                 !(
@@ -403,7 +426,13 @@ window.getAccName = window.calcNames = function(
             }
 
             // Otherwise, if current node has a non-empty aria-label then set as name and process no deeper within the branch.
-            if (!hasName && trim(aLabel) && !isSeparatChildFormField) {
+            if (
+              !skipTo.tag &&
+              !skipTo.role &&
+              !hasName &&
+              trim(aLabel) &&
+              !isSeparatChildFormField
+            ) {
               name = aLabel;
 
               // Check for blank value, since whitespace chars alone are not valid as a name
@@ -417,7 +446,13 @@ window.getAccName = window.calcNames = function(
             }
 
             // Otherwise, if name is still empty and the current node matches the ref node and is a standard form field with a non-empty associated label element, process label with same naming computation algorithm.
-            if (!hasName && node === refNode && isNativeFormField) {
+            if (
+              !skipTo.tag &&
+              !skipTo.role &&
+              !hasName &&
+              node === refNode &&
+              isNativeFormField
+            ) {
               // Logic modified to match issue
               // https://github.com/WhatSock/w3c-alternative-text-computation/issues/12 */
               var labels = document.querySelectorAll("label");
@@ -480,11 +515,21 @@ window.getAccName = window.calcNames = function(
             // Process native form field buttons in accordance with the HTML AAM
             // https://w3c.github.io/html-aam/#accessible-name-and-description-computation
             var btnType =
-              (isNativeButton && node.getAttribute("type")) || false;
+              (!skipTo.tag &&
+                !skipTo.role &&
+                isNativeButton &&
+                node.getAttribute("type")) ||
+              false;
             var btnValue =
-              (btnType && trim(node.getAttribute("value"))) || false;
+              (!skipTo.tag &&
+                !skipTo.role &&
+                btnType &&
+                trim(node.getAttribute("value"))) ||
+              false;
 
             var rolePresentation =
+              !skipTo.tag &&
+              !skipTo.role &&
               !hasName &&
               nRole &&
               presentationRoles.indexOf(nRole) !== -1 &&
@@ -496,6 +541,8 @@ window.getAccName = window.calcNames = function(
 
             // Otherwise, if name is still empty and current node is a standard non-presentational img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
             if (
+              !skipTo.tag &&
+              !skipTo.role &&
               !hasName &&
               !rolePresentation &&
               (nTag === "img" || btnType === "image") &&
@@ -509,6 +556,8 @@ window.getAccName = window.calcNames = function(
             }
 
             if (
+              !skipTo.tag &&
+              !skipTo.role &&
               !hasName &&
               node === refNode &&
               btnType &&
@@ -535,6 +584,8 @@ window.getAccName = window.calcNames = function(
             }
 
             if (
+              !skipTo.tag &&
+              !skipTo.role &&
               hasName &&
               node === refNode &&
               btnType &&
@@ -546,8 +597,44 @@ window.getAccName = window.calcNames = function(
               result.desc = btnValue;
             }
 
+            var isFieldset =
+              !skipTo.tag &&
+              !skipTo.role &&
+              !hasName &&
+              node === rootNode &&
+              (nRole === "group" || (!nRole && nTag === "fieldset"));
+
+            // Otherwise, if name is still empty and the current node matches the root node and is a standard fieldset element with a non-empty associated legend element, process legend with same naming computation algorithm.
+            // Plus do the same for role="group" with embedded role="legend", or a combination of these.
+            if (isFieldset) {
+              name = trim(
+                walk(
+                  node,
+                  stop,
+                  false,
+                  [],
+                  false,
+                  {
+                    ref: ownedBy,
+                    top: node
+                  },
+                  {
+                    tag: "legend",
+                    role: "legend",
+                    go: true
+                  }
+                ).name
+              );
+              if (trim(name)) {
+                hasName = true;
+              }
+              skip = true;
+            }
+
             // Otherwise, if current node is the same as rootNode and is non-presentational and includes a non-empty title attribute and is not a separate embedded form field, store title attribute value as the accessible name if name is still empty, or the description if not.
             if (
+              !skipTo.tag &&
+              !skipTo.role &&
               node === rootNode &&
               !rolePresentation &&
               trim(nTitle) &&
@@ -556,9 +643,27 @@ window.getAccName = window.calcNames = function(
               result.title = trim(nTitle);
             }
 
+            var isSkipTo =
+              (skipTo.role && skipTo.role === nRole) ||
+              (!nRole && skipTo.tag && skipTo.tag === nTag);
+
+            // Process custom tag and role searches such as fieldset directing AccName to the first legend.
+            if (isSkipTo) {
+              name = trim(
+                walk(node, stop, false, [], false, {
+                  ref: ownedBy,
+                  top: node
+                }).name
+              );
+              if (trim(name)) {
+                hasName = true;
+                skip = true;
+              }
+            }
+
             // Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
             // Also abort aria-owns processing if contained on an element that does not support child elements.
-            if (aOwns && !isNativeFormField && nTag !== "img") {
+            if (!isSkipTo && aOwns && !isNativeFormField && nTag !== "img") {
               ids = aOwns.split(/\s+/);
               parts = [];
               for (i = 0; i < ids.length; i++) {
@@ -583,7 +688,7 @@ window.getAccName = window.calcNames = function(
           }
 
           // Otherwise, process text node
-          else if (node.nodeType === 3) {
+          else if (!skipTo.tag && !skipTo.role && node.nodeType === 3) {
             name = node.data;
           }
 
@@ -626,6 +731,7 @@ window.getAccName = window.calcNames = function(
           inList(list1) ||
           inList(list2) ||
           inList(list3) ||
+          inList(list4) ||
           presentationRoles.indexOf(role) !== -1
         ) {
           return role;
@@ -699,6 +805,7 @@ window.getAccName = window.calcNames = function(
     };
     // Never include name from content when current node matches list2
     // The rowgroup role was added to prevent 'name from content' in accordance with relevant ARIA 1.1 spec changes.
+    // The fieldset element and group role was added to account for implicit mappings where name from content is not supported.
     var list2 = {
       roles: [
         "application",
@@ -737,7 +844,8 @@ window.getAccName = window.calcNames = function(
         "tree",
         "treegrid",
         "separator",
-        "rowgroup"
+        "rowgroup",
+        "group"
       ],
       tags: [
         "article",
@@ -762,7 +870,8 @@ window.getAccName = window.calcNames = function(
         "section",
         "thead",
         "tbody",
-        "tfoot"
+        "tfoot",
+        "fieldset"
       ]
     };
     // As an override of list2, conditionally include name from content if current node is focusable, or if the current node matches list3 while the referenced parent node (root node) matches list1.
@@ -772,13 +881,18 @@ window.getAccName = window.calcNames = function(
         "definition",
         "directory",
         "list",
-        "group",
         "note",
         "status",
         "table",
         "contentinfo"
       ],
       tags: ["dl", "ul", "ol", "dd", "details", "output", "table"]
+    };
+    // Subsequent roles added as part of the Role Parity project for ARIA 1.2.
+    // Tracks roles that don't specifically belong within the prior process lists.
+    var list4 = {
+      roles: ["legend"],
+      tags: ["legend"]
     };
 
     var nativeFormFields = ["button", "input", "select", "textarea"];
@@ -1111,10 +1225,18 @@ window.getAccName = window.calcNames = function(
       }
     };
 
-    var getParent = function(node, nTag) {
+    var getParent = function(node, nTag, nRole, noRole) {
+      var noRole = noRole ? true : false;
       while (node) {
         node = node.parentNode;
-        if (node && node.nodeName && node.nodeName.toLowerCase() === nTag) {
+        if (
+          node &&
+          ((nRole && getRole(node) === nRole) ||
+            (nTag &&
+              node.nodeName &&
+              node.nodeName.toLowerCase() === nTag &&
+              (!noRole || getRole(node).length < 1)))
+        ) {
           return node;
         }
       }
