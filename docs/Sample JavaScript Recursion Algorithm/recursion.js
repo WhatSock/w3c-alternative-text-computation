@@ -485,7 +485,10 @@ Plus roles extended for the Role Parity project.
                   ? true
                   : false;
 
-              if (explicitLabel) {
+              if (
+                explicitLabel &&
+                !isParentHidden(explicitLabel, document.body, true)
+              ) {
                 var eLblName = trim(
                   walk(explicitLabel, true, skip, [node], false, {
                     ref: ownedBy,
@@ -493,7 +496,11 @@ Plus roles extended for the Role Parity project.
                   }).name
                 );
               }
-              if (implicitLabel && implicitLabel !== explicitLabel) {
+              if (
+                implicitLabel &&
+                implicitLabel !== explicitLabel &&
+                !isParentHidden(implicitLabel, document.body, true)
+              ) {
                 var iLblName = trim(
                   walk(implicitLabel, true, skip, [node], false, {
                     ref: ownedBy,
