@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.23";
+window.getAccNameVersion = "2.24";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -178,7 +178,7 @@ Plus roles extended for the Role Parity project.
         if (fResult.name && fResult.name.length) {
           res.name += fResult.name;
         }
-        if (!isException(node, ownedBy.top)) {
+        if (!fResult.skip && !isException(node, ownedBy.top)) {
           if (skipTo.go) skipTo.go = false;
           node = node.firstChild;
           while (node) {
@@ -211,7 +211,8 @@ Plus roles extended for the Role Parity project.
           var result = {
             name: "",
             title: "",
-            owns: ""
+            owns: "",
+            skip: false
           };
           var isEmbeddedNode =
             node &&
@@ -327,52 +328,56 @@ Plus roles extended for the Role Parity project.
                 ? true
                 : false;
 
-            if (!stop && node === refNode) {
-              // Check for non-empty value of aria-labelledby if current node equals reference node, follow each ID ref, then stop and process no deeper.
-              if (!skipTo.tag && !skipTo.role && aLabelledby) {
-                ids = aLabelledby.split(/\s+/);
-                parts = [];
-                for (i = 0; i < ids.length; i++) {
-                  element = document.getElementById(ids[i]);
-                  // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
-                  parts.push(
-                    walk(element, true, skip, [node], element === refNode, {
-                      ref: ownedBy,
-                      top: element
-                    }).name
-                  );
-                }
-                // Check for blank value, since whitespace chars alone are not valid as a name
-                name = trim(parts.join(" "));
-
-                if (trim(name)) {
-                  hasName = true;
-                  // Abort further recursion if name is valid.
-                  skip = true;
-                }
+            // Check for non-empty value of aria-labelledby on current node, follow each ID ref, then stop and process no deeper.
+            if (!stop && !skipTo.tag && !skipTo.role && aLabelledby) {
+              ids = aLabelledby.split(/\s+/);
+              parts = [];
+              for (i = 0; i < ids.length; i++) {
+                element = document.getElementById(ids[i]);
+                // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
+                parts.push(
+                  walk(element, true, skip, [node], element === refNode, {
+                    ref: ownedBy,
+                    top: element
+                  }).name
+                );
               }
+              // Check for blank value, since whitespace chars alone are not valid as a name
+              name = trim(parts.join(" "));
 
-              // Check for non-empty value of aria-describedby if current node equals reference node, follow each ID ref, then stop and process no deeper.
-              if (!skipTo.tag && !skipTo.role && aDescribedby) {
-                var desc = "";
-                ids = aDescribedby.split(/\s+/);
-                parts = [];
-                for (i = 0; i < ids.length; i++) {
-                  element = document.getElementById(ids[i]);
-                  // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
-                  parts.push(
-                    walk(element, true, false, [node], false, {
-                      ref: ownedBy,
-                      top: element
-                    }).name
-                  );
-                }
-                // Check for blank value, since whitespace chars alone are not valid as a name
-                desc = trim(parts.join(" "));
+              if (trim(name)) {
+                hasName = true;
+                // Abort further recursion if name is valid.
+                result.skip = true;
+              }
+            }
 
-                if (trim(desc)) {
-                  result.desc = desc;
-                }
+            // Check for non-empty value of aria-describedby if current node equals reference node, follow each ID ref, then stop and process no deeper.
+            if (
+              !stop &&
+              node === refNode &&
+              !skipTo.tag &&
+              !skipTo.role &&
+              aDescribedby
+            ) {
+              var desc = "";
+              ids = aDescribedby.split(/\s+/);
+              parts = [];
+              for (i = 0; i < ids.length; i++) {
+                element = document.getElementById(ids[i]);
+                // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
+                parts.push(
+                  walk(element, true, false, [node], false, {
+                    ref: ownedBy,
+                    top: element
+                  }).name
+                );
+              }
+              // Check for blank value, since whitespace chars alone are not valid as a name
+              desc = trim(parts.join(" "));
+
+              if (trim(desc)) {
+                result.desc = desc;
               }
             }
 
