@@ -18,6 +18,7 @@ window.getAccName = window.calcNames = function(
   overrides
 ) {
   overrides = overrides || {};
+  var docO = overrides.document || document;
   var props = { name: "", desc: "", error: "" };
   try {
     if (!node || node.nodeType !== 1) {
@@ -118,7 +119,7 @@ Plus roles extended for the Role Parity project.
           }
           if (node && node === parent) {
             return true;
-          } else if (!node || node === ownedBy.top || node === document.body) {
+          } else if (!node || node === ownedBy.top || node === docO.body) {
             return false;
           }
         }
@@ -132,10 +133,10 @@ Plus roles extended for the Role Parity project.
       };
 
       if (ownedBy.ref) {
-        if (isParentHidden(refNode, document.body, true, true)) {
+        if (isParentHidden(refNode, docO.body, true, true)) {
           // If referenced via aria-labelledby or aria-describedby, do not return a name or description if a parent node is hidden.
           return fullResult;
-        } else if (isHidden(refNode, document.body)) {
+        } else if (isHidden(refNode, docO.body)) {
           // Otherwise, if aria-labelledby or aria-describedby reference a node that is explicitly hidden, then process all children regardless of their individual hidden states.
           var ignoreHidden = true;
         }
@@ -348,7 +349,7 @@ Plus roles extended for the Role Parity project.
               ids = aDescribedby.split(/\s+/);
               parts = [];
               for (i = 0; i < ids.length; i++) {
-                element = document.getElementById(ids[i]);
+                element = docO.getElementById(ids[i]);
                 // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
                 parts.push(
                   walk(element, true, false, [node], false, {
@@ -371,7 +372,7 @@ Plus roles extended for the Role Parity project.
               ids = aLabelledby.split(/\s+/);
               parts = [];
               for (i = 0; i < ids.length; i++) {
-                element = document.getElementById(ids[i]);
+                element = docO.getElementById(ids[i]);
                 // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
                 parts.push(
                   walk(element, true, skip, [node], element === refNode, {
@@ -433,13 +434,12 @@ Plus roles extended for the Role Parity project.
               ) {
                 // Logic modified to match issue
                 // https://github.com/WhatSock/w3c-alternative-text-computation/issues/12 */
-                var labels = document.querySelectorAll("label");
+                var labels = docO.querySelectorAll("label");
                 var implicitLabel = getParent(node, "label") || false;
                 var explicitLabel =
                   node.id &&
-                  document.querySelectorAll('label[for="' + node.id + '"]')
-                    .length
-                    ? document.querySelector('label[for="' + node.id + '"]')
+                  docO.querySelectorAll('label[for="' + node.id + '"]').length
+                    ? docO.querySelector('label[for="' + node.id + '"]')
                     : false;
                 var implicitI = 0;
                 var explicitI = 0;
@@ -461,7 +461,7 @@ Plus roles extended for the Role Parity project.
 
                 if (
                   explicitLabel &&
-                  !isParentHidden(explicitLabel, document.body, true)
+                  !isParentHidden(explicitLabel, docO.body, true)
                 ) {
                   var eLblName = trim(
                     walk(explicitLabel, true, skip, [node], false, {
@@ -473,7 +473,7 @@ Plus roles extended for the Role Parity project.
                 if (
                   implicitLabel &&
                   implicitLabel !== explicitLabel &&
-                  !isParentHidden(implicitLabel, document.body, true)
+                  !isParentHidden(implicitLabel, docO.body, true)
                 ) {
                   var iLblName = trim(
                     walk(implicitLabel, true, skip, [node], false, {
@@ -722,7 +722,7 @@ Plus roles extended for the Role Parity project.
               ids = aOwns.split(/\s+/);
               parts = [];
               for (i = 0; i < ids.length; i++) {
-                element = document.getElementById(ids[i]);
+                element = docO.getElementById(ids[i]);
                 // Abort processing if the referenced node has already been traversed
                 if (element && owns.indexOf(ids[i]) === -1) {
                   owns.push(ids[i]);
@@ -732,7 +732,7 @@ Plus roles extended for the Role Parity project.
                     node: node,
                     target: element
                   };
-                  if (!isParentHidden(element, document.body, true)) {
+                  if (!isParentHidden(element, docO.body, true)) {
                     parts.push(walk(element, true, skip, [], false, oBy).name);
                   }
                 }
@@ -1038,8 +1038,8 @@ Plus roles extended for the Role Parity project.
       overrides.getStyleObject ||
       function(node) {
         var style = {};
-        if (document.defaultView && document.defaultView.getComputedStyle) {
-          style = document.defaultView.getComputedStyle(node, "");
+        if (docO.defaultView && docO.defaultView.getComputedStyle) {
+          style = docO.defaultView.getComputedStyle(node, "");
         } else if (node.currentStyle) {
           style = node.currentStyle;
         }
@@ -1238,11 +1238,11 @@ Plus roles extended for the Role Parity project.
       function(node, position) {
         var styleObj = {};
         for (var prop in blockStyles) {
-          styleObj[prop] = document.defaultView
+          styleObj[prop] = docO.defaultView
             .getComputedStyle(node, position)
             .getPropertyValue(prop);
         }
-        styleObj["content"] = document.defaultView
+        styleObj["content"] = docO.defaultView
           .getComputedStyle(node, position)
           .getPropertyValue("content")
           .replace(/^"|\\|"$/g, "");
@@ -1280,7 +1280,7 @@ Plus roles extended for the Role Parity project.
         ) {
           return { before: "", after: "" };
         }
-        if (document.defaultView && document.defaultView.getComputedStyle) {
+        if (docO.defaultView && docO.defaultView.getComputedStyle) {
           return {
             before: cleanCSSText(node, getText(node, ":before")),
             after: cleanCSSText(node, getText(node, ":after"))
@@ -1347,7 +1347,7 @@ Plus roles extended for the Role Parity project.
       return str.replace(/^\s+|\s+$/g, "");
     };
 
-    if (isParentHidden(node, document.body, true)) {
+    if (isParentHidden(node, docO.body, true)) {
       return props;
     }
 
@@ -1381,8 +1381,8 @@ Plus roles extended for the Role Parity project.
 
 // Customize returned string for testable statements
 
-window.getAccNameMsg = window.getNames = function(node) {
-  var props = window.calcNames(node);
+window.getAccNameMsg = window.getNames = function(node, overrides) {
+  var props = window.getAccName(node, null, false, overrides);
   if (props.error) {
     return (
       props.error +
