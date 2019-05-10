@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.25";
+window.getAccNameVersion = "2.26";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -611,7 +611,8 @@ Plus roles extended for the Role Parity project.
               // Otherwise, if name is still empty and the root node and the current node are the same and node is an svg element, then parse the content of the title element to set the name and the desc element to set the description.
               if (!skipTo.tag && !skipTo.role && nTag === "svg") {
                 var svgT = node.querySelector("title") || false;
-                var svgD = node.querySelector("desc") || false;
+                var svgD =
+                  (node === rootNode && node.querySelector("desc")) || false;
                 if (!hasName && svgT) {
                   name = trim(
                     walk(svgT, true, false, [], false, {
@@ -635,6 +636,7 @@ Plus roles extended for the Role Parity project.
                     hasDesc = true;
                   }
                 }
+                result.skip = true;
               }
             }
 
