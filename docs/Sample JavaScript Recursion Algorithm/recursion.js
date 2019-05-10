@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.24";
+window.getAccNameVersion = "2.25";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -14,8 +14,10 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
 window.getAccName = window.calcNames = function(
   node,
   fnc,
-  preventVisualARIASelfCSSRef
+  preventVisualARIASelfCSSRef,
+  overrides
 ) {
+  overrides = overrides || {};
   var props = { name: "", desc: "", error: "" };
   try {
     if (!node || node.nodeType !== 1) {
@@ -174,6 +176,7 @@ Plus roles extended for the Role Parity project.
           node && node.nodeType === 1 && isBlockLevelElement(node)
             ? true
             : false;
+        var currentNode = node;
         var fResult = fn(node) || {};
         if (fResult.name && fResult.name.length) {
           res.name += fResult.name;
@@ -187,12 +190,16 @@ Plus roles extended for the Role Parity project.
           }
         }
         res.name += fResult.owns || "";
-        if (rootNode === refNode && !trim(res.name) && trim(fResult.title)) {
+        if (
+          rootNode === currentNode &&
+          !trim(res.name) &&
+          trim(fResult.title)
+        ) {
           res.name = addSpacing(fResult.title);
-        } else if (rootNode === refNode && trim(fResult.title)) {
+        } else if (rootNode === currentNode && trim(fResult.title)) {
           res.title = addSpacing(fResult.title);
         }
-        if (rootNode === refNode && trim(fResult.desc)) {
+        if (rootNode === currentNode && trim(fResult.desc)) {
           res.title = addSpacing(fResult.desc);
         }
         if (nodeIsBlock || fResult.isWidget) {
@@ -314,6 +321,7 @@ Plus roles extended for the Role Parity project.
             result.isWidget = isNativeFormField || isWidgetRole;
 
             var hasName = false;
+            var hasDesc = false;
             var aOwns = node.getAttribute("aria-owns") || "";
             var isSeparatChildFormField =
               !skipTo.tag &&
@@ -327,30 +335,6 @@ Plus roles extended for the Role Parity project.
                   ownedBy[node.id].target === node))
                 ? true
                 : false;
-
-            // Check for non-empty value of aria-labelledby on current node, follow each ID ref, then stop and process no deeper.
-            if (!stop && !skipTo.tag && !skipTo.role && aLabelledby) {
-              ids = aLabelledby.split(/\s+/);
-              parts = [];
-              for (i = 0; i < ids.length; i++) {
-                element = document.getElementById(ids[i]);
-                // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
-                parts.push(
-                  walk(element, true, skip, [node], element === refNode, {
-                    ref: ownedBy,
-                    top: element
-                  }).name
-                );
-              }
-              // Check for blank value, since whitespace chars alone are not valid as a name
-              name = trim(parts.join(" "));
-
-              if (trim(name)) {
-                hasName = true;
-                // Abort further recursion if name is valid.
-                result.skip = true;
-              }
-            }
 
             // Check for non-empty value of aria-describedby if current node equals reference node, follow each ID ref, then stop and process no deeper.
             if (
@@ -378,6 +362,279 @@ Plus roles extended for the Role Parity project.
 
               if (trim(desc)) {
                 result.desc = desc;
+                hasDesc = true;
+              }
+            }
+
+            // Check for non-empty value of aria-labelledby on current node, follow each ID ref, then stop and process no deeper.
+            if (!stop && !skipTo.tag && !skipTo.role && aLabelledby) {
+              ids = aLabelledby.split(/\s+/);
+              parts = [];
+              for (i = 0; i < ids.length; i++) {
+                element = document.getElementById(ids[i]);
+                // Also prevent the current form field from having its value included in the naming computation if nested as a child of label
+                parts.push(
+                  walk(element, true, skip, [node], element === refNode, {
+                    ref: ownedBy,
+                    top: element
+                  }).name
+                );
+              }
+              // Check for blank value, since whitespace chars alone are not valid as a name
+              name = trim(parts.join(" "));
+
+              if (trim(name)) {
+                hasName = true;
+                // Abort further recursion if name is valid.
+                result.skip = true;
+              }
+            }
+
+            // Otherwise, if current node has a non-empty aria-label then set as name and process no deeper within the branch.
+            if (
+              !skipTo.tag &&
+              !skipTo.role &&
+              !hasName &&
+              trim(aLabel) &&
+              !isSeparatChildFormField
+            ) {
+              name = aLabel;
+
+              // Check for blank value, since whitespace chars alone are not valid as a name
+              if (trim(name)) {
+                hasName = true;
+                if (node === refNode) {
+                  // If name is non-empty and both the current and refObject nodes match, then don't process any deeper within the branch.
+                  skip = true;
+                }
+              }
+            }
+
+            var rolePresentation =
+              !skipTo.tag &&
+              !skipTo.role &&
+              !hasName &&
+              nRole &&
+              presentationRoles.indexOf(nRole) !== -1 &&
+              !isFocusable(node) &&
+              !hasGlobalAttr(node)
+                ? true
+                : false;
+
+            // Otherwise, if the current node is not a nested widget control within the parent ref obj, but is instead a native markup element that includes a host-defined labelling mechanism, then set the name and description accordingly if present.
+            if (!isSeparatChildFormField) {
+              // Otherwise, if name is still empty and the current node matches the ref node and is a standard form field with a non-empty associated label element, process label with same naming computation algorithm.
+              if (
+                !skipTo.tag &&
+                !skipTo.role &&
+                !hasName &&
+                node === refNode &&
+                isNativeFormField
+              ) {
+                // Logic modified to match issue
+                // https://github.com/WhatSock/w3c-alternative-text-computation/issues/12 */
+                var labels = document.querySelectorAll("label");
+                var implicitLabel = getParent(node, "label") || false;
+                var explicitLabel =
+                  node.id &&
+                  document.querySelectorAll('label[for="' + node.id + '"]')
+                    .length
+                    ? document.querySelector('label[for="' + node.id + '"]')
+                    : false;
+                var implicitI = 0;
+                var explicitI = 0;
+                for (i = 0; i < labels.length; i++) {
+                  if (labels[i] === implicitLabel) {
+                    implicitI = i;
+                  } else if (labels[i] === explicitLabel) {
+                    explicitI = i;
+                  }
+                }
+                var isImplicitFirst =
+                  implicitLabel &&
+                  implicitLabel.nodeType === 1 &&
+                  explicitLabel &&
+                  explicitLabel.nodeType === 1 &&
+                  implicitI < explicitI
+                    ? true
+                    : false;
+
+                if (
+                  explicitLabel &&
+                  !isParentHidden(explicitLabel, document.body, true)
+                ) {
+                  var eLblName = trim(
+                    walk(explicitLabel, true, skip, [node], false, {
+                      ref: ownedBy,
+                      top: explicitLabel
+                    }).name
+                  );
+                }
+                if (
+                  implicitLabel &&
+                  implicitLabel !== explicitLabel &&
+                  !isParentHidden(implicitLabel, document.body, true)
+                ) {
+                  var iLblName = trim(
+                    walk(implicitLabel, true, skip, [node], false, {
+                      ref: ownedBy,
+                      top: implicitLabel
+                    }).name
+                  );
+                }
+
+                if (iLblName && eLblName && isImplicitFirst) {
+                  name = iLblName + " " + eLblName;
+                } else if (eLblName && iLblName) {
+                  name = eLblName + " " + iLblName;
+                } else if (eLblName) {
+                  name = eLblName;
+                } else if (iLblName) {
+                  name = iLblName;
+                }
+
+                if (trim(name)) {
+                  hasName = true;
+                }
+              }
+
+              // Process native form field buttons in accordance with the HTML AAM
+              // https://w3c.github.io/html-aam/#accessible-name-and-description-computation
+              var btnType =
+                (!skipTo.tag &&
+                  !skipTo.role &&
+                  isNativeButton &&
+                  node.getAttribute("type")) ||
+                false;
+              var btnValue =
+                (!skipTo.tag &&
+                  !skipTo.role &&
+                  btnType &&
+                  trim(node.getAttribute("value"))) ||
+                false;
+
+              var nAlt = rolePresentation ? "" : trim(node.getAttribute("alt"));
+
+              // Otherwise, if name is still empty and current node is a standard non-presentational img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
+              if (
+                !skipTo.tag &&
+                !skipTo.role &&
+                !hasName &&
+                !rolePresentation &&
+                (nTag === "img" || btnType === "image") &&
+                nAlt
+              ) {
+                // Check for blank value, since whitespace chars alone are not valid as a name
+                name = trim(nAlt);
+                if (trim(name)) {
+                  hasName = true;
+                }
+              }
+
+              if (
+                !skipTo.tag &&
+                !skipTo.role &&
+                !hasName &&
+                node === refNode &&
+                btnType &&
+                ["button", "image", "submit", "reset"].indexOf(btnType) !== -1
+              ) {
+                if (btnValue) {
+                  name = btnValue;
+                } else {
+                  switch (btnType) {
+                    case "submit":
+                    case "image":
+                      name = "Submit Query";
+                      break;
+                    case "reset":
+                      name = "Reset";
+                      break;
+                    default:
+                      name = "";
+                  }
+                }
+                if (trim(name)) {
+                  hasName = true;
+                }
+              }
+
+              if (
+                !skipTo.tag &&
+                !skipTo.role &&
+                hasName &&
+                node === refNode &&
+                btnType &&
+                ["button", "submit", "reset"].indexOf(btnType) !== -1 &&
+                btnValue &&
+                btnValue !== name &&
+                !result.desc
+              ) {
+                result.desc = btnValue;
+                hasDesc = true;
+              }
+
+              var isFieldset =
+                !skipTo.tag &&
+                !skipTo.role &&
+                !hasName &&
+                node === rootNode &&
+                (nRole === "group" || (!nRole && nTag === "fieldset"));
+
+              // Otherwise, if name is still empty and the current node matches the root node and is a standard fieldset element with a non-empty associated legend element, process legend with same naming computation algorithm.
+              // Plus do the same for role="group" with embedded role="legend", or a combination of these.
+              if (isFieldset) {
+                name = trim(
+                  walk(
+                    node,
+                    stop,
+                    false,
+                    [],
+                    false,
+                    {
+                      ref: ownedBy,
+                      top: node
+                    },
+                    {
+                      tag: "legend",
+                      role: "legend",
+                      go: true
+                    }
+                  ).name
+                );
+                if (trim(name)) {
+                  hasName = true;
+                }
+                skip = true;
+              }
+
+              // Otherwise, if name is still empty and the root node and the current node are the same and node is an svg element, then parse the content of the title element to set the name and the desc element to set the description.
+              if (!skipTo.tag && !skipTo.role && nTag === "svg") {
+                var svgT = node.querySelector("title") || false;
+                var svgD = node.querySelector("desc") || false;
+                if (!hasName && svgT) {
+                  name = trim(
+                    walk(svgT, true, false, [], false, {
+                      ref: ownedBy,
+                      top: svgT
+                    }).name
+                  );
+                  if (trim(name)) {
+                    hasName = true;
+                  }
+                }
+                if (!hasDesc && svgD) {
+                  var dE = trim(
+                    walk(svgD, true, false, [], false, {
+                      ref: ownedBy,
+                      top: svgD
+                    }).name
+                  );
+                  if (trim(dE)) {
+                    result.desc = dE;
+                    hasDesc = true;
+                  }
+                }
               }
             }
 
@@ -430,227 +687,13 @@ Plus roles extended for the Role Parity project.
               }
             }
 
-            // Otherwise, if current node has a non-empty aria-label then set as name and process no deeper within the branch.
+            // Otherwise, if current node is the same as rootNode and is non-presentational and includes a non-empty title attribute, store title attribute value as the accessible name if name is still empty, or the description if not.
+            // Processing for this is handled within the walkDOM function.
             if (
               !skipTo.tag &&
               !skipTo.role &&
-              !hasName &&
-              trim(aLabel) &&
-              !isSeparatChildFormField
-            ) {
-              name = aLabel;
-
-              // Check for blank value, since whitespace chars alone are not valid as a name
-              if (trim(name)) {
-                hasName = true;
-                if (node === refNode) {
-                  // If name is non-empty and both the current and refObject nodes match, then don't process any deeper within the branch.
-                  skip = true;
-                }
-              }
-            }
-
-            // Otherwise, if name is still empty and the current node matches the ref node and is a standard form field with a non-empty associated label element, process label with same naming computation algorithm.
-            if (
-              !skipTo.tag &&
-              !skipTo.role &&
-              !hasName &&
-              node === refNode &&
-              isNativeFormField
-            ) {
-              // Logic modified to match issue
-              // https://github.com/WhatSock/w3c-alternative-text-computation/issues/12 */
-              var labels = document.querySelectorAll("label");
-              var implicitLabel = getParent(node, "label") || false;
-              var explicitLabel =
-                node.id &&
-                document.querySelectorAll('label[for="' + node.id + '"]').length
-                  ? document.querySelector('label[for="' + node.id + '"]')
-                  : false;
-              var implicitI = 0;
-              var explicitI = 0;
-              for (i = 0; i < labels.length; i++) {
-                if (labels[i] === implicitLabel) {
-                  implicitI = i;
-                } else if (labels[i] === explicitLabel) {
-                  explicitI = i;
-                }
-              }
-              var isImplicitFirst =
-                implicitLabel &&
-                implicitLabel.nodeType === 1 &&
-                explicitLabel &&
-                explicitLabel.nodeType === 1 &&
-                implicitI < explicitI
-                  ? true
-                  : false;
-
-              if (
-                explicitLabel &&
-                !isParentHidden(explicitLabel, document.body, true)
-              ) {
-                var eLblName = trim(
-                  walk(explicitLabel, true, skip, [node], false, {
-                    ref: ownedBy,
-                    top: explicitLabel
-                  }).name
-                );
-              }
-              if (
-                implicitLabel &&
-                implicitLabel !== explicitLabel &&
-                !isParentHidden(implicitLabel, document.body, true)
-              ) {
-                var iLblName = trim(
-                  walk(implicitLabel, true, skip, [node], false, {
-                    ref: ownedBy,
-                    top: implicitLabel
-                  }).name
-                );
-              }
-
-              if (iLblName && eLblName && isImplicitFirst) {
-                name = iLblName + " " + eLblName;
-              } else if (eLblName && iLblName) {
-                name = eLblName + " " + iLblName;
-              } else if (eLblName) {
-                name = eLblName;
-              } else if (iLblName) {
-                name = iLblName;
-              }
-
-              if (trim(name)) {
-                hasName = true;
-              }
-            }
-
-            // Process native form field buttons in accordance with the HTML AAM
-            // https://w3c.github.io/html-aam/#accessible-name-and-description-computation
-            var btnType =
-              (!skipTo.tag &&
-                !skipTo.role &&
-                isNativeButton &&
-                node.getAttribute("type")) ||
-              false;
-            var btnValue =
-              (!skipTo.tag &&
-                !skipTo.role &&
-                btnType &&
-                trim(node.getAttribute("value"))) ||
-              false;
-
-            var rolePresentation =
-              !skipTo.tag &&
-              !skipTo.role &&
-              !hasName &&
-              nRole &&
-              presentationRoles.indexOf(nRole) !== -1 &&
-              !isFocusable(node) &&
-              !hasGlobalAttr(node)
-                ? true
-                : false;
-            var nAlt = rolePresentation ? "" : trim(node.getAttribute("alt"));
-
-            // Otherwise, if name is still empty and current node is a standard non-presentational img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
-            if (
-              !skipTo.tag &&
-              !skipTo.role &&
-              !hasName &&
               !rolePresentation &&
-              (nTag === "img" || btnType === "image") &&
-              nAlt
-            ) {
-              // Check for blank value, since whitespace chars alone are not valid as a name
-              name = trim(nAlt);
-              if (trim(name)) {
-                hasName = true;
-              }
-            }
-
-            if (
-              !skipTo.tag &&
-              !skipTo.role &&
-              !hasName &&
-              node === refNode &&
-              btnType &&
-              ["button", "image", "submit", "reset"].indexOf(btnType) !== -1
-            ) {
-              if (btnValue) {
-                name = btnValue;
-              } else {
-                switch (btnType) {
-                  case "submit":
-                  case "image":
-                    name = "Submit Query";
-                    break;
-                  case "reset":
-                    name = "Reset";
-                    break;
-                  default:
-                    name = "";
-                }
-              }
-              if (trim(name)) {
-                hasName = true;
-              }
-            }
-
-            if (
-              !skipTo.tag &&
-              !skipTo.role &&
-              hasName &&
-              node === refNode &&
-              btnType &&
-              ["button", "submit", "reset"].indexOf(btnType) !== -1 &&
-              btnValue &&
-              btnValue !== name &&
-              !result.desc
-            ) {
-              result.desc = btnValue;
-            }
-
-            var isFieldset =
-              !skipTo.tag &&
-              !skipTo.role &&
-              !hasName &&
-              node === rootNode &&
-              (nRole === "group" || (!nRole && nTag === "fieldset"));
-
-            // Otherwise, if name is still empty and the current node matches the root node and is a standard fieldset element with a non-empty associated legend element, process legend with same naming computation algorithm.
-            // Plus do the same for role="group" with embedded role="legend", or a combination of these.
-            if (isFieldset) {
-              name = trim(
-                walk(
-                  node,
-                  stop,
-                  false,
-                  [],
-                  false,
-                  {
-                    ref: ownedBy,
-                    top: node
-                  },
-                  {
-                    tag: "legend",
-                    role: "legend",
-                    go: true
-                  }
-                ).name
-              );
-              if (trim(name)) {
-                hasName = true;
-              }
-              skip = true;
-            }
-
-            // Otherwise, if current node is the same as rootNode and is non-presentational and includes a non-empty title attribute and is not a separate embedded form field, store title attribute value as the accessible name if name is still empty, or the description if not.
-            if (
-              !skipTo.tag &&
-              !skipTo.role &&
-              node === rootNode &&
-              !rolePresentation &&
-              trim(nTitle) &&
-              !isSeparatChildFormField
+              trim(nTitle)
             ) {
               result.title = trim(nTitle);
             }
@@ -931,10 +974,12 @@ Plus roles extended for the Role Parity project.
 
     var hasGlobalAttr = function(node) {
       var globalPropsAndStates = [
+        "labelledby",
+        "label",
+        "describedby",
         "busy",
         "controls",
         "current",
-        "describedby",
         "details",
         "disabled",
         "dropeffect",
@@ -957,25 +1002,27 @@ Plus roles extended for the Role Parity project.
       return false;
     };
 
-    var isHidden = function(node, refNode) {
-      var hidden = function(node) {
-        if (!node || node.nodeType !== 1 || node === refNode) {
+    var isHidden =
+      overrides.isHidden ||
+      function(node, refNode) {
+        var hidden = function(node) {
+          if (!node || node.nodeType !== 1 || node === refNode) {
+            return false;
+          }
+          if (node.getAttribute("aria-hidden") === "true") {
+            return true;
+          }
+          if (node.getAttribute("hidden")) {
+            return true;
+          }
+          var style = getStyleObject(node);
+          if (style["display"] === "none" || style["visibility"] === "hidden") {
+            return true;
+          }
           return false;
-        }
-        if (node.getAttribute("aria-hidden") === "true") {
-          return true;
-        }
-        if (node.getAttribute("hidden")) {
-          return true;
-        }
-        var style = getStyleObject(node);
-        if (style["display"] === "none" || style["visibility"] === "hidden") {
-          return true;
-        }
-        return false;
+        };
+        return hidden(node);
       };
-      return hidden(node);
-    };
 
     var isParentHidden = function(node, refNode, skipOwned, skipCurrent) {
       while (node && node !== refNode) {
@@ -987,15 +1034,17 @@ Plus roles extended for the Role Parity project.
       return false;
     };
 
-    var getStyleObject = function(node) {
-      var style = {};
-      if (document.defaultView && document.defaultView.getComputedStyle) {
-        style = document.defaultView.getComputedStyle(node, "");
-      } else if (node.currentStyle) {
-        style = node.currentStyle;
-      }
-      return style;
-    };
+    var getStyleObject =
+      overrides.getStyleObject ||
+      function(node) {
+        var style = {};
+        if (document.defaultView && document.defaultView.getComputedStyle) {
+          style = document.defaultView.getComputedStyle(node, "");
+        } else if (node.currentStyle) {
+          style = node.currentStyle;
+        }
+        return style;
+      };
 
     var cleanCSSText = function(node, text) {
       var s = text;
@@ -1184,19 +1233,21 @@ Plus roles extended for the Role Parity project.
       return parts.join(" ");
     };
 
-    var getPseudoElStyleObj = function(node, position) {
-      var styleObj = {};
-      for (var prop in blockStyles) {
-        styleObj[prop] = document.defaultView
+    var getPseudoElStyleObj =
+      overrides.getPseudoElStyleObj ||
+      function(node, position) {
+        var styleObj = {};
+        for (var prop in blockStyles) {
+          styleObj[prop] = document.defaultView
+            .getComputedStyle(node, position)
+            .getPropertyValue(prop);
+        }
+        styleObj["content"] = document.defaultView
           .getComputedStyle(node, position)
-          .getPropertyValue(prop);
-      }
-      styleObj["content"] = document.defaultView
-        .getComputedStyle(node, position)
-        .getPropertyValue("content")
-        .replace(/^"|\\|"$/g, "");
-      return styleObj;
-    };
+          .getPropertyValue("content")
+          .replace(/^"|\\|"$/g, "");
+        return styleObj;
+      };
 
     var getText = function(node, position) {
       if (!position && node.nodeType === 1) {
@@ -1217,25 +1268,27 @@ Plus roles extended for the Role Parity project.
       return text;
     };
 
-    var getCSSText = function(node, refNode) {
-      if (
-        (node && node.nodeType !== 1) ||
-        node === refNode ||
-        ["input", "select", "textarea", "img", "iframe"].indexOf(
-          node.nodeName.toLowerCase()
-        ) !== -1
-      ) {
-        return { before: "", after: "" };
-      }
-      if (document.defaultView && document.defaultView.getComputedStyle) {
-        return {
-          before: cleanCSSText(node, getText(node, ":before")),
-          after: cleanCSSText(node, getText(node, ":after"))
-        };
-      } else {
-        return { before: "", after: "" };
-      }
-    };
+    var getCSSText =
+      overrides.getCSSText ||
+      function(node, refNode) {
+        if (
+          (node && node.nodeType !== 1) ||
+          node === refNode ||
+          ["input", "select", "textarea", "img", "iframe"].indexOf(
+            node.nodeName.toLowerCase()
+          ) !== -1
+        ) {
+          return { before: "", after: "" };
+        }
+        if (document.defaultView && document.defaultView.getComputedStyle) {
+          return {
+            before: cleanCSSText(node, getText(node, ":before")),
+            after: cleanCSSText(node, getText(node, ":after"))
+          };
+        } else {
+          return { before: "", after: "" };
+        }
+      };
 
     var getParent = function(node, nTag, nRole, noRole) {
       var noRole = noRole ? true : false;
