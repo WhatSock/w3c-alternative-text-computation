@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.27";
+window.getAccNameVersion = "2.28";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -435,63 +435,25 @@ Plus roles extended for the Role Parity project.
                 // Logic modified to match issue
                 // https://github.com/WhatSock/w3c-alternative-text-computation/issues/12 */
                 var labels = docO.querySelectorAll("label");
+                var lblName = "";
                 var implicitLabel = getParent(node, "label") || false;
-                var explicitLabel =
-                  node.id &&
-                  docO.querySelectorAll('label[for="' + node.id + '"]').length
-                    ? docO.querySelector('label[for="' + node.id + '"]')
-                    : false;
-                var implicitI = 0;
-                var explicitI = 0;
+
                 for (i = 0; i < labels.length; i++) {
-                  if (labels[i] === implicitLabel) {
-                    implicitI = i;
-                  } else if (labels[i] === explicitLabel) {
-                    explicitI = i;
+                  if (
+                    (labels[i] === implicitLabel ||
+                      labels[i].getAttribute("for") === node.id) &&
+                    !isParentHidden(labels[i], docO.body, true)
+                  ) {
+                    lblName += addSpacing(
+                      walk(labels[i], true, skip, [node], false, {
+                        ref: ownedBy,
+                        top: labels[i]
+                      }).name
+                    );
                   }
                 }
-                var isImplicitFirst =
-                  implicitLabel &&
-                  implicitLabel.nodeType === 1 &&
-                  explicitLabel &&
-                  explicitLabel.nodeType === 1 &&
-                  implicitI < explicitI
-                    ? true
-                    : false;
 
-                if (
-                  explicitLabel &&
-                  !isParentHidden(explicitLabel, docO.body, true)
-                ) {
-                  var eLblName = trim(
-                    walk(explicitLabel, true, skip, [node], false, {
-                      ref: ownedBy,
-                      top: explicitLabel
-                    }).name
-                  );
-                }
-                if (
-                  implicitLabel &&
-                  implicitLabel !== explicitLabel &&
-                  !isParentHidden(implicitLabel, docO.body, true)
-                ) {
-                  var iLblName = trim(
-                    walk(implicitLabel, true, skip, [node], false, {
-                      ref: ownedBy,
-                      top: implicitLabel
-                    }).name
-                  );
-                }
-
-                if (iLblName && eLblName && isImplicitFirst) {
-                  name = iLblName + " " + eLblName;
-                } else if (eLblName && iLblName) {
-                  name = eLblName + " " + iLblName;
-                } else if (eLblName) {
-                  name = eLblName;
-                } else if (iLblName) {
-                  name = iLblName;
-                }
+                name = lblName;
 
                 if (trim(name)) {
                   hasName = true;
