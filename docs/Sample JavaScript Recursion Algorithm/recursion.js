@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.28";
+window.getAccNameVersion = "2.29";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -475,7 +475,9 @@ Plus roles extended for the Role Parity project.
                   trim(node.getAttribute("value"))) ||
                 false;
 
-              var nAlt = rolePresentation ? "" : trim(node.getAttribute("alt"));
+              var nAlt = rolePresentation
+                ? ""
+                : trim(node.alt || node.getAttribute("alt"));
 
               // Otherwise, if name is still empty and current node is a standard non-presentational img or image button with a non-empty alt attribute, set alt attribute value as the accessible name.
               if (
@@ -493,6 +495,23 @@ Plus roles extended for the Role Parity project.
                 }
               }
 
+              // Process native HTML area tags to use alt as name when not explicitly set using aria-labelledby or aria-label.
+              if (
+                !skipTo.tag &&
+                !skipTo.role &&
+                !hasName &&
+                !rolePresentation &&
+                nTag === "area" &&
+                nAlt
+              ) {
+                // Check for blank value, since whitespace chars alone are not valid as a name
+                name = trim(nAlt);
+                if (trim(name)) {
+                  hasName = true;
+                }
+              }
+
+              // Process the accessible names for native HTML buttons
               if (
                 !skipTo.tag &&
                 !skipTo.role &&
