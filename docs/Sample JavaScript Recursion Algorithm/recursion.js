@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.29";
+window.getAccNameVersion = "2.30";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -560,10 +560,12 @@ Plus roles extended for the Role Parity project.
                 !skipTo.role &&
                 !hasName &&
                 node === rootNode &&
-                (nRole === "group" || (!nRole && nTag === "fieldset"));
+                (nRole === "group" ||
+                  nRole === "radiogroup" ||
+                  (!nRole && nTag === "fieldset"));
 
               // Otherwise, if name is still empty and the current node matches the root node and is a standard fieldset element with a non-empty associated legend element, process legend with same naming computation algorithm.
-              // Plus do the same for role="group" with embedded role="legend", or a combination of these.
+              // Plus do the same for role="group" and role="radiogroup" with embedded role="legend", or a combination of these.
               if (isFieldset) {
                 name = trim(
                   walk(
