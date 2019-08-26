@@ -511,6 +511,22 @@ Plus roles extended for the Role Parity project.
                 }
               }
 
+              // Process native HTML optgroup tags to use label as name when not explicitly set using aria-labelledby or aria-label.
+              if (
+                !skipTo.tag &&
+                !skipTo.role &&
+                !hasName &&
+                !rolePresentation &&
+                nTag === "optgroup" &&
+                node.getAttribute("label")
+              ) {
+                // Check for blank value, since whitespace chars alone are not valid as a name
+                name = trim(node.getAttribute("label"));
+                if (trim(name)) {
+                  hasName = true;
+                }
+              }
+
               // Process the accessible names for native HTML buttons
               if (
                 !skipTo.tag &&
