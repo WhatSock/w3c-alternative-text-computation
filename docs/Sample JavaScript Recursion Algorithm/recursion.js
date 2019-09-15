@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.30";
+window.getAccNameVersion = "2.31";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -580,27 +580,77 @@ Plus roles extended for the Role Parity project.
                   nRole === "radiogroup" ||
                   (!nRole && nTag === "fieldset"));
 
-              // Otherwise, if name is still empty and the current node matches the root node and is a standard fieldset element with a non-empty associated legend element, process legend with same naming computation algorithm.
+              // Otherwise, if name is still empty and the current node matches the root node and is a standard fieldset element with a non-empty associated legend element as the first child node, process legend with same naming computation algorithm.
               // Plus do the same for role="group" and role="radiogroup" with embedded role="legend", or a combination of these.
               if (isFieldset) {
-                name = trim(
-                  walk(
-                    node,
-                    stop,
-                    false,
-                    [],
-                    false,
-                    {
+                var fChild = firstChild(node, ["legend"], ["legend"]) || false;
+                if (fChild) {
+                  name = trim(
+                    walk(fChild, stop, false, [], false, {
                       ref: ownedBy,
-                      top: node
-                    },
-                    {
-                      tag: "legend",
-                      role: "legend",
-                      go: true
-                    }
-                  ).name
-                );
+                      top: fChild
+                    }).name
+                  );
+                }
+                if (trim(name)) {
+                  hasName = true;
+                }
+                skip = true;
+              }
+
+              var isTable =
+                !skipTo.tag &&
+                !skipTo.role &&
+                !hasName &&
+                node === rootNode &&
+                (nRole === "table" || (!nRole && nTag === "table"));
+
+              // Otherwise, if name is still empty and the current node matches the root node and is a standard table element with a non-empty associated caption element as the first child node, process caption with same naming computation algorithm.
+              // Plus do the same for role="table" with embedded role="caption", or a combination of these.
+              if (isTable) {
+                var fChild =
+                  firstChild(node, ["caption"], ["caption"]) || false;
+                if (fChild) {
+                  name = trim(
+                    walk(fChild, stop, false, [], false, {
+                      ref: ownedBy,
+                      top: fChild
+                    }).name
+                  );
+                }
+                if (trim(name)) {
+                  hasName = true;
+                }
+                skip = true;
+              }
+
+              var isFigure =
+                !skipTo.tag &&
+                !skipTo.role &&
+                !hasName &&
+                node === rootNode &&
+                (nRole === "figure" || (!nRole && nTag === "figure"));
+
+              // Otherwise, if name is still empty and the current node matches the root node and is a standard figure element with a non-empty associated figcaption element as the first or last child node, process caption with same naming computation algorithm.
+              // Plus do the same for role="figure" with embedded role="caption", or a combination of these.
+              if (isFigure) {
+                var fChild =
+                  firstChild(node, ["figcaption"], ["figcaption"]) ||
+                  lastChild(node, ["figcaption"], ["figcaption"]) ||
+                  false;
+                if (fChild) {
+                  var tChild =
+                    ["caption"].indexOf(ftRole) !== -1 ||
+                    ["figcaption"].indexOf(ftName) !== -1
+                      ? fChild
+                      : lChild;
+                  name = trim(
+                    walk(tChild, stop, false, [], false, {
+                      ref: ownedBy,
+                      top: tChild
+                    }).name
+                  );
+                }
                 if (trim(name)) {
                   hasName = true;
                 }
@@ -770,6 +820,44 @@ Plus roles extended for the Role Parity project.
         cssOP.before + fullResult.name.replace(/\s+/g, " ") + cssOP.after;
 
       return fullResult;
+    };
+
+    var firstChild = function(e, t, r, s) {
+      var e = e ? e.firstChild : null;
+      while (e) {
+        var tr = getRole(e) || false;
+        if (
+          e.nodeType === 1 &&
+          ((!t && !r) ||
+            ((tr && r && r.indexOf(tr) !== -1) ||
+              (!tr && t && t.indexOf(e.nodeName.toLowerCase()) !== -1)))
+        ) {
+          return e;
+        } else if (!s && e.nodeType === 1 && (t || r)) {
+          return null;
+        }
+        e = e.nextSibling;
+      }
+      return e;
+    };
+
+    var lastChild = function(e, t) {
+      var e = e ? e.lastChild : null;
+      while (e) {
+        var tr = getRole(e) || false;
+        if (
+          e.nodeType === 1 &&
+          ((!t && !r) ||
+            ((tr && r && r.indexOf(tr) !== -1) ||
+              (!tr && t && t.indexOf(e.nodeName.toLowerCase()) !== -1)))
+        ) {
+          return e;
+        } else if (!s && e.nodeType === 1 && (t || r)) {
+          return null;
+        }
+        e = e.previousSibling;
+      }
+      return e;
     };
 
     var getRole = function(node) {
@@ -947,8 +1035,8 @@ Plus roles extended for the Role Parity project.
     // Subsequent roles added as part of the Role Parity project for ARIA 1.2.
     // Tracks roles that don't specifically belong within the prior process lists.
     var list4 = {
-      roles: ["legend"],
-      tags: ["legend"]
+      roles: ["legend", "caption"],
+      tags: ["legend", "caption", "figcaption"]
     };
 
     var nativeFormFields = ["button", "input", "select", "textarea"];
