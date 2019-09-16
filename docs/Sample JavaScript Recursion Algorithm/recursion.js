@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.31";
+window.getAccNameVersion = "2.32";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -635,19 +635,14 @@ Plus roles extended for the Role Parity project.
               // Plus do the same for role="figure" with embedded role="caption", or a combination of these.
               if (isFigure) {
                 var fChild =
-                  firstChild(node, ["figcaption"], ["figcaption"]) ||
-                  lastChild(node, ["figcaption"], ["figcaption"]) ||
+                  firstChild(node, ["figcaption"], ["caption"]) ||
+                  lastChild(node, ["figcaption"], ["caption"]) ||
                   false;
                 if (fChild) {
-                  var tChild =
-                    ["caption"].indexOf(ftRole) !== -1 ||
-                    ["figcaption"].indexOf(ftName) !== -1
-                      ? fChild
-                      : lChild;
                   name = trim(
-                    walk(tChild, stop, false, [], false, {
+                    walk(fChild, stop, false, [], false, {
                       ref: ownedBy,
-                      top: tChild
+                      top: fChild
                     }).name
                   );
                 }
