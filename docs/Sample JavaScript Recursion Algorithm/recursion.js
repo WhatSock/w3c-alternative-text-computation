@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.32";
+window.getAccNameVersion = "2.33";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -744,11 +744,44 @@ Plus roles extended for the Role Parity project.
               result.title = trim(nTitle);
             }
 
+            var nType = isNativeFormField && trim(node.getAttribute("type"));
+            if (!nType) nType = "text";
+            var placeholder =
+              !skipTo.tag &&
+              !skipTo.role &&
+              !hasName &&
+              !isSeparatChildFormField &&
+              node === rootNode &&
+              (isEditWidgetRole ||
+                (isNativeFormField &&
+                  (nTag === "textarea" ||
+                    (nTag === "input" &&
+                      [
+                        "password",
+                        "search",
+                        "tel",
+                        "text",
+                        "url",
+                        "email"
+                      ].indexOf(nType) !== -1)))) &&
+              trim(
+                node.getAttribute("placeholder") ||
+                  node.getAttribute("aria-placeholder")
+              );
+
+            if (placeholder) {
+              if (!nTitle) name = placeholder;
+              else if (!hasDesc) result.desc = placeholder;
+              if (trim(name)) {
+                hasName = true;
+              }
+            }
+
             var isSkipTo =
               (skipTo.role && skipTo.role === nRole) ||
               (!nRole && skipTo.tag && skipTo.tag === nTag);
 
-            // Process custom tag and role searches such as fieldset directing AccName to the first legend.
+            // Process custom tag and role searches if needed.
             if (isSkipTo) {
               name = trim(
                 walk(node, stop, false, [], false, {
