@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.33";
+window.getAccNameVersion = "2.34";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -1464,7 +1464,16 @@ Plus roles extended for the Role Parity project.
       return str.replace(/^\s+|\s+$/g, "");
     };
 
-    if (isParentHidden(node, docO.body, true)) {
+    if (
+      isParentHidden(
+        node,
+        docO.body,
+        true,
+        node && node.nodeName && node.nodeName.toLowerCase() === "area"
+          ? true
+          : false
+      )
+    ) {
       return props;
     }
 
