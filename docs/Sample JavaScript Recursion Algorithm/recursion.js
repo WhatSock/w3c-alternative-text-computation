@@ -1402,9 +1402,8 @@ Plus roles extended for the Role Parity project.
             before: cleanCSSText(node, getText(node, ":before")),
             after: cleanCSSText(node, getText(node, ":after"))
           };
-        } else {
-          return { before: "", after: "" };
         }
+        return { before: "", after: "" };
       };
 
     var getParent = function(node, nTag, nRole, noRole) {
