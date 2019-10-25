@@ -1397,13 +1397,10 @@ Plus roles extended for the Role Parity project.
         ) {
           return { before: "", after: "" };
         }
-        if (docO.defaultView && docO.defaultView.getComputedStyle) {
-          return {
-            before: cleanCSSText(node, getText(node, ":before")),
-            after: cleanCSSText(node, getText(node, ":after"))
-          };
-        }
-        return { before: "", after: "" };
+        return {
+          before: cleanCSSText(node, getText(node, ":before")),
+          after: cleanCSSText(node, getText(node, ":after"))
+        };
       };
 
     var getParent = function(node, nTag, nRole, noRole) {
