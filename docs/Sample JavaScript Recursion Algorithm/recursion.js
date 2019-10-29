@@ -871,7 +871,7 @@ Plus roles extended for the Role Parity project.
       return e;
     };
 
-    var lastChild = function(e, t) {
+    var lastChild = function(e, t, r, s) {
       var e = e ? e.lastChild : null;
       while (e) {
         var tr = getRole(e) || false;
