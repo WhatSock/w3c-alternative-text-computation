@@ -1,4 +1,4 @@
-window.getAccNameVersion = "2.35";
+window.getAccNameVersion = "2.36";
 
 /*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
@@ -1520,17 +1520,14 @@ window.getAccNameMsg = window.getNames = function(node, overrides) {
       ". Please copy this error message and the HTML markup that caused it, and submit both as a new GitHub issue at\n" +
       "https://github.com/whatsock/w3c-alternative-text-computation"
     );
-  } else {
-    return (
-      'accName: "' +
-      props.name +
-      '"\n\naccDesc: "' +
-      props.desc +
-      '"\n\n(Running AccName Computation Prototype version: ' +
-      window.getAccNameVersion +
-      ")"
-    );
   }
+  var r = 'accName: "' + props.name + '"\n\naccDesc: "' + props.desc + '"\n\n';
+  if (props.placeholder) r += "Name from placeholder: true\n\n";
+  r +=
+    "(Running AccName Computation Prototype version: " +
+    window.getAccNameVersion +
+    ")";
+  return r;
 };
 
 if (typeof module === "object" && module.exports) {
