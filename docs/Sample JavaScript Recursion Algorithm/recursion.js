@@ -20,6 +20,7 @@ window.getAccName = window.calcNames = function(
   overrides = overrides || {};
   var docO = overrides.document || document;
   var props = { name: "", desc: "", error: "" };
+  var nameFromPlaceholder = false;
   try {
     if (!node || node.nodeType !== 1) {
       return props;
@@ -772,8 +773,10 @@ Plus roles extended for the Role Parity project.
               );
 
             if (placeholder) {
-              if (!nTitle) name = placeholder;
-              else if (!hasDesc) result.desc = placeholder;
+              if (!nTitle) {
+                name = placeholder;
+                nameFromPlaceholder = true;
+              } else if (!hasDesc) result.desc = placeholder;
               if (trim(name)) {
                 hasName = true;
               }
@@ -1495,6 +1498,7 @@ Plus roles extended for the Role Parity project.
   } catch (e) {
     props.error = e;
   }
+  props.placeholder = nameFromPlaceholder;
 
   if (fnc && typeof fnc === "function") {
     return fnc.apply(node, [props, node]);
