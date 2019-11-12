@@ -1,74 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<title>AccName Prototype Test</title>
-<style type="text/css">
-#fieldDiv {
-display: table;
-width: 80%;
-margin: 100px 10%;
-}
-.hidden {
-display: none;
-}
-</style>
-</head>
-<body>
-<div class="pageContainer">
-<div id="fieldDiv" onfocusin="handleFocusIn(event)"><!--
+  <head>
+    <title>AccName Prototype Test</title>
+    <style type="text/css">
+      #fieldDiv {
+        display: table;
+        width: 80%;
+        margin: 100px 10%;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pageContainer">
+      <div id="fieldDiv" onfocusin="handleFocusIn(event)">
+        <!--
 Start of W3C ARIA test case code.
 The root node element for which the Name and Description is being calculated, must include id="test". -->
 
-<!-- End of W3C ARIA test case code. -->
-</div>
+        <!-- End of W3C ARIA test case code. -->
+      </div>
+    </div>
+    <br /><br /><br />
+    <div>
+      <button
+        onclick="(function(){var a=document.createElement('script');a.type='text/javascript';a.src='https://accdc.github.io/visual-aria/visual-aria/roles.js';document.head.appendChild(a)})()"
+      >
+        Load Visual ARIA
+      </button>
+      <button
+        onclick="document.getElementById('calcTextStr').innerHTML = AccNamePrototype.getAccNameMsg(document.getElementById('test'));"
+      >
+        Calculate Accessible Name and Description
+      </button>
+      <br />
+      <textarea
+        aria-live="polite"
+        id="calcTextStr"
+        readonly
+        aria-label="Accessible Name and Description Calculation"
+        title="Accessible Name and Description Calculation"
+        style="width: 100%; height: 60px;"
+      ></textarea>
+    </div>
+    <br />
+    <button onclick="addTestID()">Add id="test" at current position</button>
+    <button onclick="pasteAndTest()">Paste & Test</button>
+    <br />
+    <textarea
+      aria-label="Test Mark up Input"
+      rows="20"
+      cols="150"
+      id="pastedMarkUp"
+    ></textarea>
 
-</div>
-<br /><br /><br />
-<div>
-<button onclick="(function(){var a=document.createElement('script');a.type='text/javascript';a.src='https://accdc.github.io/visual-aria/visual-aria/roles.js';document.head.appendChild(a)})()"> Load Visual ARIA </button>
-<button onclick="document.getElementById('calcTextStr').innerHTML = getNames(document.getElementById('test'));"> Calculate Accessible Name and Description </button>
-<br />
-<textarea aria-live="polite" id="calcTextStr" readonly aria-label="Accessible Name and Description Calculation" title="Accessible Name and Description Calculation" style="width: 100%; height: 60px;"></textarea>
-</div>
-<br />
-<button onclick="addTestID()">Add id="test" at current position</button>
-<button onclick="pasteAndTest()">Paste & Test</button>
-<br />
-<textarea aria-label="Test Mark up Input" rows="20" cols="150" id="pastedMarkUp"></textarea>
-
-<div><p>
-Projects:
-</p>
-<ul>
-<li>AccName Prototype: <a target="github" href="https://github.com/WhatSock/w3c-alternative-text-computation">https://github.com/WhatSock/w3c-alternative-text-computation</a></li>
-<li>Visual ARIA: <a target="github" href="https://github.com/AccDC/visual-aria">https://github.com/AccDC/visual-aria</a></li>
-<li>Visual ARIA Bookmarklet: <a target="github" href="https://accdc.github.io/visual-aria/github-bookmarklet/visual-aria.htm">https://accdc.github.io/visual-aria/github-bookmarklet/visual-aria.htm</a></li>
-</ul>
-</div>
-<script type="text/javascript" src="https://whatsock.github.io/w3c-alternative-text-computation/Sample%20JavaScript%20Recursion%20Algorithm/recursion.js"></script>
-<script>
-
-    function pasteAndTest(){
+    <div>
+      <p>
+        Projects:
+      </p>
+      <ul>
+        <li>
+          AccName Prototype:
+          <a
+            target="github"
+            href="https://github.com/WhatSock/w3c-alternative-text-computation"
+            >https://github.com/WhatSock/w3c-alternative-text-computation</a
+          >
+        </li>
+        <li>
+          Visual ARIA:
+          <a target="github" href="https://github.com/AccDC/visual-aria"
+            >https://github.com/AccDC/visual-aria</a
+          >
+        </li>
+        <li>
+          Visual ARIA Bookmarklet:
+          <a
+            target="github"
+            href="https://accdc.github.io/visual-aria/github-bookmarklet/visual-aria.htm"
+            >https://accdc.github.io/visual-aria/github-bookmarklet/visual-aria.htm</a
+          >
+        </li>
+      </ul>
+    </div>
+    <script>
+      var AccNamePrototypeNameSpace = "AccNamePrototype";
+    </script>
+    <script
+      type="text/javascript"
+      src="https://whatsock.github.io/w3c-alternative-text-computation/Sample%20JavaScript%20Recursion%20Algorithm/recursion.js"
+    ></script>
+    <script>
+      function pasteAndTest() {
         var markUp = document.getElementById("pastedMarkUp").value;
         document.getElementById("fieldDiv").innerHTML = markUp;
-        document.getElementById("calcTextStr").innerHTML = getNames(document.getElementById("test"));
-    }
+        document.getElementById(
+          "calcTextStr"
+        ).innerHTML = AccNamePrototype.getAccNameMsg(
+          document.getElementById("test")
+        );
+      }
 
-    function addTestID() {
-        var curPos = document.getElementById('pastedMarkUp').selectionStart;
+      function addTestID() {
+        var curPos = document.getElementById("pastedMarkUp").selectionStart;
         var markup = document.getElementById("pastedMarkUp").value;
-        markup = markup.substring(0, curPos) + ' id="test" ' + markup.substring(curPos, markup.length);
+        markup =
+          markup.substring(0, curPos) +
+          ' id="test" ' +
+          markup.substring(curPos, markup.length);
         document.getElementById("pastedMarkUp").value = markup;
-    }
+      }
 
-    function handleFocusIn(ev) {
+      function handleFocusIn(ev) {
         var targ = null;
         if (!ev) ev = window.event;
         if (ev.target) targ = ev.target;
         else if (ev.srcElement) targ = ev.srcElement;
-        document.getElementById("calcTextStr").innerHTML = getNames(targ);
-    }
-
-</script>
-</body>
+        document.getElementById(
+          "calcTextStr"
+        ).innerHTML = AccNamePrototype.getAccNameMsg(targ);
+      }
+    </script>
+  </body>
 </html>
