@@ -1,12 +1,4 @@
-var AccNameNameSpace = window.AccNamePrototypeNameSpace;
-(function(nameSpace) {
-  if (nameSpace && typeof nameSpace === "string" && nameSpace.length) {
-    window[nameSpace] = {};
-    nameSpace = window[nameSpace];
-  }
-  nameSpace.getAccNameVersion = "2.37";
-
-  /*!
+/*!
 CalcNames: The AccName Computation Prototype, compute the Name and Description property values for a DOM node
 Returns an object with 'name' and 'desc' properties.
 Functionality mirrors the steps within the W3C Accessible Name and Description computation algorithm.
@@ -16,6 +8,13 @@ https://github.com/whatsock/w3c-alternative-text-computation
 Distributed under the terms of the Open Source Initiative OSI - MIT License
 */
 
+(function() {
+  var nameSpace = window.AccNamePrototypeNameSpace || window;
+  if (nameSpace && typeof nameSpace === "string" && nameSpace.length) {
+    window[nameSpace] = {};
+    nameSpace = window[nameSpace];
+  }
+  nameSpace.getAccNameVersion = "2.37";
   // AccName Computation Prototype
   nameSpace.getAccName = nameSpace.calcNames = function(
     node,
@@ -886,8 +885,8 @@ Plus roles extended for the Role Parity project.
           if (
             e.nodeType === 1 &&
             ((!t && !r) ||
-              ((tr && r && r.indexOf(tr) !== -1) ||
-                (!tr && t && t.indexOf(e.nodeName.toLowerCase()) !== -1)))
+              (tr && r && r.indexOf(tr) !== -1) ||
+              (!tr && t && t.indexOf(e.nodeName.toLowerCase()) !== -1))
           ) {
             return e;
           } else if (!s && e.nodeType === 1 && (t || r)) {
@@ -905,8 +904,8 @@ Plus roles extended for the Role Parity project.
           if (
             e.nodeType === 1 &&
             ((!t && !r) ||
-              ((tr && r && r.indexOf(tr) !== -1) ||
-                (!tr && t && t.indexOf(e.nodeName.toLowerCase()) !== -1)))
+              (tr && r && r.indexOf(tr) !== -1) ||
+              (!tr && t && t.indexOf(e.nodeName.toLowerCase()) !== -1))
           ) {
             return e;
           } else if (!s && e.nodeType === 1 && (t || r)) {
@@ -1575,4 +1574,4 @@ Plus roles extended for the Role Parity project.
       calcNames: nameSpace.calcNames
     };
   }
-})(AccNameNameSpace || window);
+})();
