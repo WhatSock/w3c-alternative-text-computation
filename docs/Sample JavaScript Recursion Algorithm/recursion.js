@@ -14,7 +14,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
     window[nameSpace] = {};
     nameSpace = window[nameSpace];
   }
-  nameSpace.getAccNameVersion = "2.37";
+  nameSpace.getAccNameVersion = "2.38";
   // AccName Computation Prototype
   nameSpace.getAccName = nameSpace.calcNames = function(
     node,
@@ -823,7 +823,11 @@ Plus roles extended for the Role Parity project.
 
               // Check for non-empty value of aria-owns, follow each ID ref, then process with same naming computation.
               // Also abort aria-owns processing if contained on an element that does not support child elements.
-              if (!isSkipTo && aOwns && !isNativeFormField && nTag !== "img") {
+              if (
+                !isSkipTo &&
+                aOwns &&
+                ["input", "img", "progress"].indexOf(nTag) === -1
+              ) {
                 ids = aOwns.split(/\s+/);
                 parts = [];
                 for (i = 0; i < ids.length; i++) {
