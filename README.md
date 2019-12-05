@@ -53,6 +53,14 @@ alert(props.desc); // Show accessible Description property
 ```
 
 ```
+alert(props.placeholder); // Show boolean true or false if accessible name was computed from placeholder alone.
+```
+
+```
+alert(props.userAgent); // Show boolean true or false if accessible name was computed from user agent alone.
+```
+
+```
 alert(props.error); // Show error if one is generated. 
 ```
 

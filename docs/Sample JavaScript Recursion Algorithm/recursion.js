@@ -14,7 +14,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
     window[nameSpace] = {};
     nameSpace = window[nameSpace];
   }
-  nameSpace.getAccNameVersion = "2.40";
+  nameSpace.getAccNameVersion = "2.41";
   // AccName Computation Prototype
   nameSpace.getAccName = nameSpace.calcNames = function(
     node,
@@ -26,6 +26,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
     var docO = overrides.document || document;
     var props = { name: "", desc: "", error: "" };
     var nameFromPlaceholder = false;
+    var nameFromUserAgent = false;
     try {
       if (!node || node.nodeType !== 1) {
         return props;
@@ -616,6 +617,7 @@ Plus roles extended for the Role Parity project.
                 ) {
                   name = "Submit Query";
                   hasName = true;
+                  nameFromUserAgent = true;
                 }
 
                 var isFieldset =
@@ -1571,6 +1573,7 @@ Plus roles extended for the Role Parity project.
       props.error = e;
     }
     props.placeholder = nameFromPlaceholder;
+    props.userAgent = nameFromUserAgent;
 
     if (fnc && typeof fnc === "function") {
       return fnc.apply(node, [props, node]);
@@ -1596,6 +1599,7 @@ Plus roles extended for the Role Parity project.
     var r =
       'accName: "' + props.name + '"\n\naccDesc: "' + props.desc + '"\n\n';
     if (props.placeholder) r += "Name from placeholder: true\n\n";
+    if (props.userAgent) r += "Name from user agent: true\n\n";
     r +=
       "(Running AccName Computation Prototype version: " +
       nameSpace.getAccNameVersion +
