@@ -14,7 +14,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
     window[nameSpace] = {};
     nameSpace = window[nameSpace];
   }
-  nameSpace.getAccNameVersion = "2.41";
+  nameSpace.getAccNameVersion = "2.42";
   // AccName Computation Prototype
   nameSpace.getAccName = nameSpace.calcNames = function(
     node,
@@ -56,6 +56,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
           name: "",
           title: ""
         };
+        var hasLabel = false;
 
         /*
   ARIA Role Exception Rule Set 1.1
@@ -264,6 +265,7 @@ Plus roles extended for the Role Parity project.
               node !== refNode
                 ? true
                 : false;
+            var hLabel = false;
 
             if (
               (skip ||
@@ -419,6 +421,8 @@ Plus roles extended for the Role Parity project.
 
                 if (trim(name)) {
                   hasName = true;
+                  hLabel = true;
+                  hasLabel = true;
                   // Abort further recursion if name is valid.
                   result.skip = true;
                 }
@@ -437,9 +441,11 @@ Plus roles extended for the Role Parity project.
                 // Check for blank value, since whitespace chars alone are not valid as a name
                 if (trim(name)) {
                   hasName = true;
+                  hLabel = true;
                   if (node === refNode) {
                     // If name is non-empty and both the current and refObject nodes match, then don't process any deeper within the branch.
                     skip = true;
+                    hasLabel = true;
                   }
                 }
               }
@@ -891,8 +897,10 @@ Plus roles extended for the Role Parity project.
               name = node.data;
             }
 
-            // Prepend and append the current CSS pseudo element text, plus normalize all whitespace such as newline characters and others into flat spaces.
-            name = cssO.before + name.replace(/\s+/g, " ") + cssO.after;
+            if (!hLabel) {
+              // Prepend and append the current CSS pseudo element text, plus normalize all whitespace such as newline characters and others into flat spaces.
+              name = cssO.before + name.replace(/\s+/g, " ") + cssO.after;
+            }
 
             if (
               name.length &&
@@ -908,9 +916,11 @@ Plus roles extended for the Role Parity project.
           refNode
         );
 
-        // Prepend and append the refObj CSS pseudo element text, plus normalize whitespace chars into flat spaces.
-        fullResult.name =
-          cssOP.before + fullResult.name.replace(/\s+/g, " ") + cssOP.after;
+        if (!hasLabel) {
+          // Prepend and append the refObj CSS pseudo element text, plus normalize whitespace chars into flat spaces.
+          fullResult.name =
+            cssOP.before + fullResult.name.replace(/\s+/g, " ") + cssOP.after;
+        }
 
         return fullResult;
       };
