@@ -100,15 +100,9 @@ Plus roles extended for the Role Parity project.
             }
           }
           // Otherwise process list2 to identify roles to ignore processing name from content.
-          else if (
-            (inList(node, list2) ||
+          else return !!((inList(node, list2) ||
               (node === rootNode && !inList(node, list1))) &&
-            !skipTo.go
-          ) {
-            return true;
-          } else {
-            return false;
-          }
+              !skipTo.go);
         };
 
         var inParent = function(node, parent) {
@@ -182,9 +176,7 @@ Plus roles extended for the Role Parity project.
             return res;
           }
           var nodeIsBlock =
-            node && node.nodeType === 1 && isBlockLevelElement(node)
-              ? true
-              : false;
+            !!(node && node.nodeType === 1 && isBlockLevelElement(node));
           var currentNode = node;
           var fResult = fn(node) || {};
           if (fResult.name && fResult.name.length) {
@@ -256,15 +248,13 @@ Plus roles extended for the Role Parity project.
               skip: false
             };
             var isEmbeddedNode =
-              node &&
-              node.nodeType === 1 &&
-              nodesToIgnoreValues &&
-              nodesToIgnoreValues.length &&
-              nodesToIgnoreValues.indexOf(node) !== -1 &&
-              node === rootNode &&
-              node !== refNode
-                ? true
-                : false;
+              !!(node &&
+                  node.nodeType === 1 &&
+                  nodesToIgnoreValues &&
+                  nodesToIgnoreValues.length &&
+                  nodesToIgnoreValues.indexOf(node) !== -1 &&
+                  node === rootNode &&
+                  node !== refNode);
             var hLabel = false;
 
             if (
@@ -360,17 +350,15 @@ Plus roles extended for the Role Parity project.
               var hasDesc = false;
               var aOwns = node.getAttribute("aria-owns") || "";
               var isSeparatChildFormField =
-                !skipTo.tag &&
-                !skipTo.role &&
-                !isEmbeddedNode &&
-                ((node !== refNode &&
-                  (isNativeFormField || isSimulatedFormField)) ||
-                  (node.id &&
-                    ownedBy[node.id] &&
-                    ownedBy[node.id].target &&
-                    ownedBy[node.id].target === node))
-                  ? true
-                  : false;
+                !!(!skipTo.tag &&
+                    !skipTo.role &&
+                    !isEmbeddedNode &&
+                    ((node !== refNode &&
+                        (isNativeFormField || isSimulatedFormField)) ||
+                        (node.id &&
+                            ownedBy[node.id] &&
+                            ownedBy[node.id].target &&
+                            ownedBy[node.id].target === node)));
 
               // Check for non-empty value of aria-describedby if current node equals reference node, follow each ID ref, then stop and process no deeper.
               if (
@@ -380,7 +368,7 @@ Plus roles extended for the Role Parity project.
                 !skipTo.role &&
                 aDescribedby
               ) {
-                var desc = "";
+                var desc;
                 ids = aDescribedby.split(/\s+/);
                 parts = [];
                 for (i = 0; i < ids.length; i++) {
@@ -452,14 +440,12 @@ Plus roles extended for the Role Parity project.
 
               var rolePresentation =
                 !skipTo.tag &&
-                !skipTo.role &&
-                !hasName &&
-                nRole &&
-                presentationRoles.indexOf(nRole) !== -1 &&
-                !isFocusable(node) &&
-                !hasGlobalAttr(node)
-                  ? true
-                  : false;
+                  !skipTo.role &&
+                  !hasName &&
+                  nRole &&
+                  presentationRoles.indexOf(nRole) !== -1 &&
+                  !isFocusable(node) &&
+                  !hasGlobalAttr(node);
 
               // Otherwise, if the current node is not a nested widget control within the parent ref obj, but is instead a native markup element that includes a host-defined labelling mechanism, then set the name and description accordingly if present.
               if (!isSeparatChildFormField) {
@@ -664,7 +650,7 @@ Plus roles extended for the Role Parity project.
                 // Otherwise, if name is still empty and the current node matches the root node and is a standard table element with a non-empty associated caption element as the first child node, process caption with same naming computation algorithm.
                 // Plus do the same for role="table" with embedded role="caption", or a combination of these.
                 if (isTable) {
-                  var fChild =
+                  fChild =
                     firstChild(node, ["caption"], ["caption"]) || false;
                   if (fChild) {
                     name = trim(
@@ -690,7 +676,7 @@ Plus roles extended for the Role Parity project.
                 // Otherwise, if name is still empty and the current node matches the root node and is a standard figure element with a non-empty associated figcaption element as the first or last child node, process caption with same naming computation algorithm.
                 // Plus do the same for role="figure" with embedded role="caption", or a combination of these.
                 if (isFigure) {
-                  var fChild =
+                  fChild =
                     firstChild(node, ["figcaption"], ["caption"]) ||
                     lastChild(node, ["figcaption"], ["caption"]) ||
                     false;
@@ -720,9 +706,6 @@ Plus roles extended for the Role Parity project.
                         top: svgT
                       }).name
                     );
-                    if (trim(name)) {
-                      hasName = true;
-                    }
                   }
                   if (!hasDesc && svgD) {
                     var dE = trim(
@@ -733,7 +716,6 @@ Plus roles extended for the Role Parity project.
                     );
                     if (trim(dE)) {
                       result.desc = dE;
-                      hasDesc = true;
                     }
                   }
                   result.skip = true;
@@ -797,10 +779,6 @@ Plus roles extended for the Role Parity project.
                   // Check for blank value, since whitespace chars alone are not valid as a name
                   name = trim(name);
                 }
-
-                if (trim(name)) {
-                  hasName = true;
-                }
               }
 
               // Otherwise, if current node is the same as rootNode and is non-presentational and includes a non-empty title attribute, store title attribute value as the accessible name if name is still empty, or the description if not.
@@ -855,7 +833,6 @@ Plus roles extended for the Role Parity project.
                   }).name
                 );
                 if (trim(name)) {
-                  hasName = true;
                   skip = true;
                 }
               }
@@ -926,7 +903,7 @@ Plus roles extended for the Role Parity project.
       };
 
       var firstChild = function(e, t, r, s) {
-        var e = e ? e.firstChild : null;
+        e = e ? e.firstChild : null;
         while (e) {
           var tr = getRole(e) || false;
           if (
@@ -945,7 +922,7 @@ Plus roles extended for the Role Parity project.
       };
 
       var lastChild = function(e, t, r, s) {
-        var e = e ? e.lastChild : null;
+        e = e ? e.lastChild : null;
         while (e) {
           var tr = getRole(e) || false;
           if (
@@ -995,13 +972,8 @@ Plus roles extended for the Role Parity project.
         if (nodeName === "a" && node.getAttribute("href")) {
           return true;
         }
-        if (
-          ["button", "input", "select", "textarea"].indexOf(nodeName) !== -1 &&
-          node.getAttribute("type") !== "hidden"
-        ) {
-          return true;
-        }
-        return false;
+        return ["button", "input", "select", "textarea"].indexOf(nodeName) !== -1 &&
+            node.getAttribute("type") !== "hidden";
       };
 
       // ARIA Role Exception Rule Set 1.1
@@ -1214,13 +1186,8 @@ Plus roles extended for the Role Parity project.
               return true;
             }
             var style = getStyleObject(node);
-            if (
-              style["display"] === "none" ||
-              style["visibility"] === "hidden"
-            ) {
-              return true;
-            }
-            return false;
+            return style["display"] === "none" ||
+                style["visibility"] === "hidden";
           };
           return hidden(node);
         };
@@ -1277,19 +1244,14 @@ Plus roles extended for the Role Parity project.
             }
           }
         }
-        if (
-          !cssObj &&
-          node.nodeName &&
-          blockElements.indexOf(node.nodeName.toLowerCase()) !== -1 &&
-          !(
-            styleObject["display"] &&
-            styleObject["display"].indexOf("inline") === 0 &&
-            node.nodeName.toLowerCase() !== "br"
-          )
-        ) {
-          return true;
-        }
-        return false;
+        return !cssObj &&
+            node.nodeName &&
+            blockElements.indexOf(node.nodeName.toLowerCase()) !== -1 &&
+            !(
+                styleObject["display"] &&
+                styleObject["display"].indexOf("inline") === 0 &&
+                node.nodeName.toLowerCase() !== "br"
+            );
       };
 
       // CSS Block Styles indexed from:
@@ -1493,7 +1455,7 @@ Plus roles extended for the Role Parity project.
         };
 
       var getParent = function(node, nTag, nRole, noRole) {
-        var noRole = noRole ? true : false;
+        noRole = !!noRole;
         while (node) {
           node = node.parentNode;
           if (
@@ -1554,9 +1516,7 @@ Plus roles extended for the Role Parity project.
           node,
           docO.body,
           true,
-          node && node.nodeName && node.nodeName.toLowerCase() === "area"
-            ? true
-            : false
+          !!(node && node.nodeName && node.nodeName.toLowerCase() === "area")
         )
       ) {
         return props;
