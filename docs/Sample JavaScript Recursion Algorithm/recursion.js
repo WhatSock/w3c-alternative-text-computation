@@ -100,9 +100,12 @@ Plus roles extended for the Role Parity project.
             }
           }
           // Otherwise process list2 to identify roles to ignore processing name from content.
-          else return !!((inList(node, list2) ||
-              (node === rootNode && !inList(node, list1))) &&
-              !skipTo.go);
+          else
+            return !!(
+              (inList(node, list2) ||
+                (node === rootNode && !inList(node, list1))) &&
+              !skipTo.go
+            );
         };
 
         var inParent = function(node, parent) {
@@ -175,8 +178,11 @@ Plus roles extended for the Role Parity project.
           if (!node) {
             return res;
           }
-          var nodeIsBlock =
-            !!(node && node.nodeType === 1 && isBlockLevelElement(node));
+          var nodeIsBlock = !!(
+            node &&
+            node.nodeType === 1 &&
+            isBlockLevelElement(node)
+          );
           var currentNode = node;
           var fResult = fn(node) || {};
           if (fResult.name && fResult.name.length) {
@@ -247,14 +253,15 @@ Plus roles extended for the Role Parity project.
               owns: "",
               skip: false
             };
-            var isEmbeddedNode =
-              !!(node &&
-                  node.nodeType === 1 &&
-                  nodesToIgnoreValues &&
-                  nodesToIgnoreValues.length &&
-                  nodesToIgnoreValues.indexOf(node) !== -1 &&
-                  node === rootNode &&
-                  node !== refNode);
+            var isEmbeddedNode = !!(
+              node &&
+              node.nodeType === 1 &&
+              nodesToIgnoreValues &&
+              nodesToIgnoreValues.length &&
+              nodesToIgnoreValues.indexOf(node) !== -1 &&
+              node === rootNode &&
+              node !== refNode
+            );
             var hLabel = false;
 
             if (
@@ -349,16 +356,17 @@ Plus roles extended for the Role Parity project.
               var hasName = false;
               var hasDesc = false;
               var aOwns = node.getAttribute("aria-owns") || "";
-              var isSeparatChildFormField =
-                !!(!skipTo.tag &&
-                    !skipTo.role &&
-                    !isEmbeddedNode &&
-                    ((node !== refNode &&
-                        (isNativeFormField || isSimulatedFormField)) ||
-                        (node.id &&
-                            ownedBy[node.id] &&
-                            ownedBy[node.id].target &&
-                            ownedBy[node.id].target === node)));
+              var isSeparatChildFormField = !!(
+                !skipTo.tag &&
+                !skipTo.role &&
+                !isEmbeddedNode &&
+                ((node !== refNode &&
+                  (isNativeFormField || isSimulatedFormField)) ||
+                  (node.id &&
+                    ownedBy[node.id] &&
+                    ownedBy[node.id].target &&
+                    ownedBy[node.id].target === node))
+              );
 
               // Check for non-empty value of aria-describedby if current node equals reference node, follow each ID ref, then stop and process no deeper.
               if (
@@ -440,12 +448,12 @@ Plus roles extended for the Role Parity project.
 
               var rolePresentation =
                 !skipTo.tag &&
-                  !skipTo.role &&
-                  !hasName &&
-                  nRole &&
-                  presentationRoles.indexOf(nRole) !== -1 &&
-                  !isFocusable(node) &&
-                  !hasGlobalAttr(node);
+                !skipTo.role &&
+                !hasName &&
+                nRole &&
+                presentationRoles.indexOf(nRole) !== -1 &&
+                !isFocusable(node) &&
+                !hasGlobalAttr(node);
 
               // Otherwise, if the current node is not a nested widget control within the parent ref obj, but is instead a native markup element that includes a host-defined labelling mechanism, then set the name and description accordingly if present.
               if (!isSeparatChildFormField) {
@@ -650,8 +658,7 @@ Plus roles extended for the Role Parity project.
                 // Otherwise, if name is still empty and the current node matches the root node and is a standard table element with a non-empty associated caption element as the first child node, process caption with same naming computation algorithm.
                 // Plus do the same for role="table" with embedded role="caption", or a combination of these.
                 if (isTable) {
-                  fChild =
-                    firstChild(node, ["caption"], ["caption"]) || false;
+                  fChild = firstChild(node, ["caption"], ["caption"]) || false;
                   if (fChild) {
                     name = trim(
                       walk(fChild, stop, false, [], false, {
@@ -972,8 +979,10 @@ Plus roles extended for the Role Parity project.
         if (nodeName === "a" && node.getAttribute("href")) {
           return true;
         }
-        return ["button", "input", "select", "textarea"].indexOf(nodeName) !== -1 &&
-            node.getAttribute("type") !== "hidden";
+        return (
+          ["button", "input", "select", "textarea"].indexOf(nodeName) !== -1 &&
+          node.getAttribute("type") !== "hidden"
+        );
       };
 
       // ARIA Role Exception Rule Set 1.1
@@ -1186,8 +1195,9 @@ Plus roles extended for the Role Parity project.
               return true;
             }
             var style = getStyleObject(node);
-            return style["display"] === "none" ||
-                style["visibility"] === "hidden";
+            return (
+              style["display"] === "none" || style["visibility"] === "hidden"
+            );
           };
           return hidden(node);
         };
@@ -1244,14 +1254,16 @@ Plus roles extended for the Role Parity project.
             }
           }
         }
-        return !cssObj &&
-            node.nodeName &&
-            blockElements.indexOf(node.nodeName.toLowerCase()) !== -1 &&
-            !(
-                styleObject["display"] &&
-                styleObject["display"].indexOf("inline") === 0 &&
-                node.nodeName.toLowerCase() !== "br"
-            );
+        return (
+          !cssObj &&
+          node.nodeName &&
+          blockElements.indexOf(node.nodeName.toLowerCase()) !== -1 &&
+          !(
+            styleObject["display"] &&
+            styleObject["display"].indexOf("inline") === 0 &&
+            node.nodeName.toLowerCase() !== "br"
+          )
+        );
       };
 
       // CSS Block Styles indexed from:
