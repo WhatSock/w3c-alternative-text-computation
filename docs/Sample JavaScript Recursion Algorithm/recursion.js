@@ -14,7 +14,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
     window[nameSpace] = {};
     nameSpace = window[nameSpace];
   }
-  nameSpace.getAccNameVersion = "2.43";
+  nameSpace.getAccNameVersion = "2.44";
   // AccName Computation Prototype
   nameSpace.getAccName = nameSpace.calcNames = function(
     node,
@@ -1235,7 +1235,7 @@ Plus roles extended for the Role Parity project.
           }
         }
         s = s
-          .replace(/url\((.*?)\)/g, "")
+          .replace(/url\((.*?)\)\s+\/|url\((.*?)\)/g, "")
           .replace(/^\s+|\s+$/g, "")
           .replace(/\"/g, "");
         return s || text;
