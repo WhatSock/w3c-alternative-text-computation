@@ -14,7 +14,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
     window[nameSpace] = {};
     nameSpace = window[nameSpace];
   }
-  nameSpace.getAccNameVersion = "2.46";
+  nameSpace.getAccNameVersion = "2.47";
   // AccName Computation Prototype
   nameSpace.getAccName = nameSpace.calcNames = function(
     node,
@@ -267,17 +267,19 @@ Plus roles extended for the Role Parity project.
             if (
               (skip ||
                 !node ||
-                nodes.indexOf(node) !== -1 ||
                 (!ignoreHidden && isHidden(node, ownedBy.top))) &&
               !skipAbort &&
               !isEmbeddedNode
             ) {
-              // Abort if algorithm step is already completed, or if node is a hidden child of refNode, or if this node has already been processed, or skip abort if aria-labelledby self references same node.
+              // Abort if algorithm step is already completed, or if node is a hidden child of refNode, or skip abort if aria-labelledby self references same node.
               return result;
             }
 
             if (!skipTo.tag && !skipTo.role && nodes.indexOf(node) === -1) {
               nodes.push(node);
+            } else {
+              // Abort if this node has already been processed.
+              return result;
             }
 
             // Store name for the current node.
