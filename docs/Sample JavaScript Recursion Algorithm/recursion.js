@@ -6,6 +6,7 @@ http://www.w3.org/TR/accname-aam-1.1/
 Authored by Bryan Garaventa, plus refactoring contrabutions by Tobias Bengfort
 https://github.com/whatsock/w3c-alternative-text-computation
 Distributed under the terms of the Open Source Initiative OSI - MIT License
+11:33 AM Thursday, May 7, 2020
 */
 
 (function() {
@@ -14,7 +15,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
     window[nameSpace] = {};
     nameSpace = window[nameSpace];
   }
-  nameSpace.getAccNameVersion = "2.48";
+  nameSpace.getAccNameVersion = "2.49";
   // AccName Computation Prototype
   nameSpace.getAccName = nameSpace.calcNames = function(
     node,
@@ -137,16 +138,6 @@ Plus roles extended for the Role Parity project.
           after: ""
         };
 
-        if (ownedBy.ref) {
-          if (isParentHidden(refNode, docO.body, true, true)) {
-            // If referenced via aria-labelledby or aria-describedby, do not return a name or description if a parent node is hidden.
-            return fullResult;
-          } else if (isHidden(refNode, docO.body)) {
-            // Otherwise, if aria-labelledby or aria-describedby reference a node that is explicitly hidden, then process all children regardless of their individual hidden states.
-            var ignoreHidden = true;
-          }
-        }
-
         if (!skipTo.tag && !skipTo.role && nodes.indexOf(refNode) === -1) {
           // Store the before and after pseudo element 'content' values for the top level DOM node
           // Note: If the pseudo element includes block level styling, a space will be added, otherwise inline is asumed and no spacing is added.
@@ -265,9 +256,7 @@ Plus roles extended for the Role Parity project.
             var hLabel = false;
 
             if (
-              (skip ||
-                !node ||
-                (!ignoreHidden && isHidden(node, ownedBy.top))) &&
+              (skip || !node || isHidden(node, ownedBy.top)) &&
               !skipAbort &&
               !isEmbeddedNode
             ) {
@@ -892,7 +881,7 @@ Plus roles extended for the Role Parity project.
 
             if (
               name.length &&
-              !hasParentLabelOrHidden(node, ownedBy.top, ownedBy, ignoreHidden)
+              !hasParentLabelOrHidden(node, ownedBy.top, ownedBy)
             ) {
               result.name = name;
             }
