@@ -61,6 +61,10 @@ alert(props.userAgent); // Show boolean true or false if accessible name was com
 ```
 
 ```
+alert(props.hasUpperCase); // Show boolean true or false if the role for root node includes uppercase characters.
+```
+
+```
 alert(props.error); // Show error if one is generated. 
 ```
 

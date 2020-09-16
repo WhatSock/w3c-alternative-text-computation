@@ -6,7 +6,6 @@ http://www.w3.org/TR/accname-aam-1.1/
 Authored by Bryan Garaventa, plus refactoring contrabutions by Tobias Bengfort
 https://github.com/whatsock/w3c-alternative-text-computation
 Distributed under the terms of the Open Source Initiative OSI - MIT License
-11:33 AM Thursday, May 7, 2020
 */
 
 (function() {
@@ -15,7 +14,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
     window[nameSpace] = {};
     nameSpace = window[nameSpace];
   }
-  nameSpace.getAccNameVersion = "2.49";
+  nameSpace.getAccNameVersion = "2.50";
   // AccName Computation Prototype
   nameSpace.getAccName = nameSpace.calcNames = function(
     node,
@@ -33,7 +32,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
         return props;
       }
       var rootNode = node;
-
+      var rootRole = trim(node.getAttribute("role") || "");
       // Track nodes to prevent duplicate node reference parsing.
       var nodes = [];
       // Track aria-owns references to prevent duplicate parsing.
@@ -492,7 +491,7 @@ Plus roles extended for the Role Parity project.
                   (!skipTo.tag &&
                     !skipTo.role &&
                     isNativeButton &&
-                    node.getAttribute("type")) ||
+                    (node.getAttribute("type") || "").toLowerCase()) ||
                   false;
                 var btnValue =
                   (!skipTo.tag &&
@@ -792,7 +791,9 @@ Plus roles extended for the Role Parity project.
                 result.title = trim(nTitle);
               }
 
-              var nType = isNativeFormField && trim(node.getAttribute("type"));
+              var nType =
+                isNativeFormField &&
+                trim(node.getAttribute("type") || "").toLowerCase();
               if (!nType) nType = "text";
               var placeholder =
                 !skipTo.tag &&
@@ -941,7 +942,10 @@ Plus roles extended for the Role Parity project.
       };
 
       var getRole = function(node) {
-        var role = node && node.getAttribute ? node.getAttribute("role") : "";
+        var role =
+          node && node.getAttribute
+            ? (node.getAttribute("role") || "").toLowerCase()
+            : "";
         if (!trim(role)) {
           return "";
         }
@@ -974,7 +978,7 @@ Plus roles extended for the Role Parity project.
         }
         return (
           ["button", "input", "select", "textarea"].indexOf(nodeName) !== -1 &&
-          node.getAttribute("type") !== "hidden"
+          (node.getAttribute("type") || "").toLowerCase() !== "hidden"
         );
       };
 
@@ -1513,13 +1517,6 @@ Plus roles extended for the Role Parity project.
         return false;
       };
 
-      var trim = function(str) {
-        if (typeof str !== "string") {
-          return "";
-        }
-        return str.replace(/^\s+|\s+$/g, "");
-      };
-
       if (
         isParentHidden(
           node,
@@ -1542,6 +1539,8 @@ Plus roles extended for the Role Parity project.
         accDesc = "";
       }
 
+      props.hasUpperCase =
+        rootRole && rootRole !== rootRole.toLowerCase() ? true : false;
       props.name = accName;
       props.desc = accDesc;
 
@@ -1559,6 +1558,13 @@ Plus roles extended for the Role Parity project.
     } else {
       return props;
     }
+  };
+
+  var trim = function(str) {
+    if (typeof str !== "string") {
+      return "";
+    }
+    return str.replace(/^\s+|\s+$/g, "");
   };
 
   // Customize returned string for testable statements
