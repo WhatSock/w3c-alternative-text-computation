@@ -7,7 +7,7 @@ The Accessible Name Computation Prototype
 To ensure interoperability, the W3C Alternative Text Computation must be supported in all browsers equally.
 
 The AccName Prototype mirrors the development of the W3C AccName specification, which will be updated accordingly with all expected behaviors as this development continues within the W3C ARIA Working Group.
-http://www.w3.org/TR/accname-aam-1.1/
+https://w3c.github.io/accname/
 
 Live AccName Prototype Test Page
 https://whatsock.github.io/w3c-alternative-text-computation/Editable%20Live%20Input%20AccName%20Test.html
