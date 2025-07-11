@@ -14,7 +14,7 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
     window[nameSpace] = {};
     nameSpace = window[nameSpace];
   }
-  nameSpace.getAccNameVersion = "2.62";
+  nameSpace.getAccNameVersion = "2.63";
   // AccName Computation Prototype
   nameSpace.getAccName = nameSpace.calcNames = function (
     node,
@@ -561,7 +561,8 @@ Plus roles extended for the Role Parity project.
                   false;
 
                 var nAlt =
-                  rolePresentation && nTag === "img"
+                  (btnType !== "image" && nTag !== "img") ||
+                  (rolePresentation && nTag === "img")
                     ? ""
                     : trim(node.alt || node.getAttribute("alt"));
 
