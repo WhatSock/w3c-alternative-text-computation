@@ -145,10 +145,11 @@ Plus roles extended for the Role Parity project.
           return false;
         };
 
-        // Placeholder for storing CSS before and after pseudo element text values for the top level node
+        // Placeholder for storing CSS before, after, and marker pseudo element text values for the top level node
         var cssOP = {
           before: "",
           after: "",
+          marker: "",
         };
 
         if (
@@ -157,12 +158,19 @@ Plus roles extended for the Role Parity project.
           nodes[!ownedBy.computingDesc ? "name" : "desc"].indexOf(refNode) ===
             -1
         ) {
-          // Store the before and after pseudo element 'content' values for the top level DOM node
+          // Store the before, after, and marker pseudo element 'content' values for the top level DOM node
           // Note: If the pseudo element includes block level styling, a space will be added, otherwise inline is asumed and no spacing is added.
+          // Marker content is always prepended without spacing in accordance with the spec.
           cssOP = getCSSText(refNode, null);
 
           // Enabled in Visual ARIA to prevent self referencing by Visual ARIA tooltips
           if (preventVisualARIASelfCSSRef) {
+            if (
+              cssOP.marker.indexOf(" [ARIA] ") !== -1 ||
+              cssOP.marker.indexOf(" aria-") !== -1 ||
+              cssOP.marker.indexOf(" accName: ") !== -1
+            )
+              cssOP.marker = "";
             if (
               cssOP.before.indexOf(" [ARIA] ") !== -1 ||
               cssOP.before.indexOf(" aria-") !== -1 ||
@@ -298,10 +306,11 @@ Plus roles extended for the Role Parity project.
             var name = "";
             // Store name from aria-owns references if detected.
             var ariaO = "";
-            // Placeholder for storing CSS before and after pseudo element text values for the current node container element
+            // Placeholder for storing CSS before, after, and marker pseudo element text values for the current node container element
             var cssO = {
               before: "",
               after: "",
+              marker: "",
             };
 
             var parent = refNode === node ? node : node.parentNode;
@@ -313,12 +322,19 @@ Plus roles extended for the Role Parity project.
               ) === -1
             ) {
               nodes[!ownedBy.computingDesc ? "name" : "desc"].push(parent);
-              // Store the before and after pseudo element 'content' values for the current node container element
+              // Store the before, after, and marker pseudo element 'content' values for the current node container element
               // Note: If the pseudo element includes block level styling, a space will be added, otherwise inline is asumed and no spacing is added.
+              // Marker content is always prepended without spacing in accordance with the spec.
               cssO = getCSSText(parent, refNode);
 
               // Enabled in Visual ARIA to prevent self referencing by Visual ARIA tooltips
               if (preventVisualARIASelfCSSRef) {
+                if (
+                  cssO.marker.indexOf(" [ARIA] ") !== -1 ||
+                  cssO.marker.indexOf(" aria-") !== -1 ||
+                  cssO.marker.indexOf(" accName: ") !== -1
+                )
+                  cssO.marker = "";
                 if (
                   cssO.before.indexOf(" [ARIA] ") !== -1 ||
                   cssO.before.indexOf(" aria-") !== -1 ||
@@ -911,8 +927,12 @@ Plus roles extended for the Role Parity project.
             }
 
             if (!hLabel) {
-              // Prepend and append the current CSS pseudo element text, plus normalize all whitespace such as newline characters and others into flat spaces.
-              name = cssO.before + name.replace(/\s+/g, " ") + cssO.after;
+              // Prepend the marker pseudo element text without spacing, then prepend and append the before/after CSS pseudo element text, plus normalize all whitespace such as newline characters and others into flat spaces.
+              name =
+                (cssO.marker || "") +
+                cssO.before +
+                name.replace(/\s+/g, " ") +
+                cssO.after;
             }
 
             if (
@@ -930,9 +950,12 @@ Plus roles extended for the Role Parity project.
         );
 
         if (!hasLabel) {
-          // Prepend and append the refObj CSS pseudo element text, plus normalize whitespace chars into flat spaces.
+          // Prepend the marker pseudo element text without spacing, then prepend and append the before/after refObj CSS pseudo element text, plus normalize whitespace chars into flat spaces.
           fullResult.name =
-            cssOP.before + fullResult.name.replace(/\s+/g, " ") + cssOP.after;
+            (cssOP.marker || "") +
+            cssOP.before +
+            fullResult.name.replace(/\s+/g, " ") +
+            cssOP.after;
         }
 
         return fullResult;
@@ -1546,6 +1569,26 @@ Plus roles extended for the Role Parity project.
         return text;
       };
 
+      // Process the CSS ::marker pseudo element 'content' value for list items and other elements that render a marker box.
+      // Reference: https://www.w3.org/TR/accname-1.2/#step2F.ii
+      var getMarkerText = function (node) {
+        var styleObject = getStyleObject(node);
+        if (
+          !styleObject["display"] ||
+          styleObject["display"].indexOf("list-item") === -1
+        ) {
+          // Markers are only rendered for elements with a computed display of list-item.
+          return "";
+        }
+        var styles = getPseudoElStyleObj(node, "::marker");
+        var text = styles["content"];
+        // "normal" is the initial/default value of the content property on ::marker (the default bullet/number), not authored text.
+        if (!text || text === "none" || text === "normal") {
+          return "";
+        }
+        return text;
+      };
+
       var getCSSText =
         overrides.getCSSText ||
         function (node, refNode) {
@@ -1561,11 +1604,12 @@ Plus roles extended for the Role Parity project.
               "optgroup",
             ].indexOf(node.nodeName.toLowerCase()) !== -1
           ) {
-            return { before: "", after: "" };
+            return { before: "", after: "", marker: "" };
           }
           return {
             before: cleanCSSText(node, getText(node, ":before")),
             after: cleanCSSText(node, getText(node, ":after")),
+            marker: cleanCSSText(node, getMarkerText(node)),
           };
         };
 
