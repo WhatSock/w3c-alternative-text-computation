@@ -152,6 +152,10 @@ Plus roles extended for the Role Parity project.
           marker: "",
         };
 
+        var ignoreHidden =
+          ownedBy.ignoreHidden ||
+          (ownedBy.isRef && isParentHidden(refNode, docO.body, true, false));
+
         if (
           !skipTo.tag &&
           !skipTo.role &&
@@ -282,7 +286,9 @@ Plus roles extended for the Role Parity project.
             var hLabel = false;
 
             if (
-              (skip || !node || isHidden(node, ownedBy.top)) &&
+              (skip ||
+                !node ||
+                (!ignoreHidden && isHidden(node, ownedBy.top))) &&
               !skipAbort &&
               !isEmbeddedNode
             ) {
@@ -440,6 +446,7 @@ Plus roles extended for the Role Parity project.
                     walk(element, true, skip, [node], element === refNode, {
                       ref: ownedBy,
                       top: element,
+                      isRef: true,
                     }).name,
                   );
                 }
@@ -475,6 +482,7 @@ Plus roles extended for the Role Parity project.
                         ref: ownedBy,
                         top: element,
                         computingDesc: true,
+                        isRef: true,
                       }).name,
                     );
                   }
@@ -903,7 +911,12 @@ Plus roles extended for the Role Parity project.
                   // Abort processing if the referenced node has already been traversed
                   if (element && owns.indexOf(ids[i]) === -1) {
                     owns.push(ids[i]);
-                    var oBy = { ref: ownedBy, top: ownedBy.top };
+                    var oBy = {
+                      ref: ownedBy,
+                      top: ownedBy.top,
+                      isRef: ownedBy.isRef,
+                      ignoreHidden: ignoreHidden,
+                    };
                     oBy[ids[i]] = {
                       refNode: refNode,
                       node: node,
@@ -937,7 +950,7 @@ Plus roles extended for the Role Parity project.
 
             if (
               name.length &&
-              !hasParentLabelOrHidden(node, ownedBy.top, ownedBy)
+              !hasParentLabelOrHidden(node, ownedBy.top, ownedBy, ignoreHidden)
             ) {
               result.name = name;
             }
