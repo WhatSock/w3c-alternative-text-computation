@@ -414,7 +414,11 @@ Plus roles extended for the Role Parity project.
                 return result;
               }
 
-              var isNativeFormField = nativeFormFields.indexOf(nTag) !== -1;
+              var isRolePresentation = !!(
+                nRole && presentationRoles.indexOf(nRole) !== -1
+              );
+              var isNativeFormField =
+                nativeFormFields.indexOf(nTag) !== -1 && !isRolePresentation;
               var isNativeButton = ["input"].indexOf(nTag) !== -1;
               var isRangeWidgetRole = rangeWidgetRoles.indexOf(nRole) !== -1;
               var isEditWidgetRole = editWidgetRoles.indexOf(nRole) !== -1;
@@ -437,6 +441,7 @@ Plus roles extended for the Role Parity project.
                 !skipTo.tag &&
                 !skipTo.role &&
                 !isEmbeddedNode &&
+                !isRolePresentation &&
                 ((node !== refNode &&
                   (isNativeFormField || isSimulatedFormField)) ||
                   (node.id &&
@@ -563,7 +568,7 @@ Plus roles extended for the Role Parity project.
                       !isParentHidden(labels[i], docO.body, true)
                     ) {
                       lblName += addSpacing(
-                        walk(labels[i], true, skip, [node], false, {
+                        walk(labels[i], stop, skip, [node], false, {
                           ref: ownedBy,
                           top: labels[i],
                         }).name,
@@ -792,7 +797,12 @@ Plus roles extended for the Role Parity project.
               }
 
               // Otherwise, if the current node is a nested widget control within the parent ref obj, then add only its value and process no deeper within the branch.
-              if (!skipTo.tag && !skipTo.role && isSeparatChildFormField) {
+              if (
+                !skipTo.tag &&
+                !skipTo.role &&
+                !isRolePresentation &&
+                isSeparatChildFormField
+              ) {
                 // Prevent the referencing node from having its value included in the case of form control labels that contain the element with focus.
                 if (
                   !(
