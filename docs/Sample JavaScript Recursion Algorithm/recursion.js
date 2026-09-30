@@ -9,8 +9,16 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
 */
 
 (function () {
-  var nameSpace = window.AccNamePrototypeNameSpace || window;
-  if (nameSpace && typeof nameSpace === "string" && nameSpace.length) {
+  var nameSpace =
+    typeof window !== "undefined"
+      ? window.AccNamePrototypeNameSpace || window
+      : {};
+  if (
+    typeof window !== "undefined" &&
+    nameSpace &&
+    typeof nameSpace === "string" &&
+    nameSpace.length
+  ) {
     window[nameSpace] = {};
     nameSpace = window[nameSpace];
   }
@@ -61,6 +69,12 @@ Distributed under the terms of the Open Source Initiative OSI - MIT License
           title: "",
         };
         var hasLabel = false;
+        var ignoreHidden = false;
+        if (ownedBy.isLabelledBy && refNode && refNode.nodeType === 1) {
+          if (isParentHidden(refNode, docO.body, true)) {
+            ignoreHidden = true;
+          }
+        }
 
         /*
   ARIA Role Exception Rule Set 1.1
@@ -282,7 +296,9 @@ Plus roles extended for the Role Parity project.
             var hLabel = false;
 
             if (
-              (skip || !node || isHidden(node, ownedBy.top)) &&
+              (skip ||
+                !node ||
+                (!ignoreHidden && isHidden(node, ownedBy.top))) &&
               !skipAbort &&
               !isEmbeddedNode
             ) {
@@ -440,6 +456,7 @@ Plus roles extended for the Role Parity project.
                     walk(element, true, skip, [node], element === refNode, {
                       ref: ownedBy,
                       top: element,
+                      isLabelledBy: true,
                     }).name,
                   );
                 }
@@ -708,6 +725,7 @@ Plus roles extended for the Role Parity project.
                       walk(fChild, stop, false, [], false, {
                         ref: ownedBy,
                         top: fChild,
+                        isLabelledBy: ownedBy.isLabelledBy,
                       }).name,
                     );
                   }
@@ -733,6 +751,7 @@ Plus roles extended for the Role Parity project.
                       walk(fChild, stop, false, [], false, {
                         ref: ownedBy,
                         top: fChild,
+                        isLabelledBy: ownedBy.isLabelledBy,
                       }).name,
                     );
                   }
@@ -752,6 +771,7 @@ Plus roles extended for the Role Parity project.
                       walk(svgT, true, false, [], false, {
                         ref: ownedBy,
                         top: svgT,
+                        isLabelledBy: ownedBy.isLabelledBy,
                       }).name,
                     );
                   }
@@ -760,6 +780,7 @@ Plus roles extended for the Role Parity project.
                       walk(svgD, true, false, [], false, {
                         ref: ownedBy,
                         top: svgD,
+                        isLabelledBy: ownedBy.isLabelledBy,
                       }).name,
                     );
                     if (trim(dE)) {
@@ -882,6 +903,7 @@ Plus roles extended for the Role Parity project.
                   walk(node, stop, false, [], false, {
                     ref: ownedBy,
                     top: node,
+                    isLabelledBy: ownedBy.isLabelledBy,
                   }).name,
                 );
                 if (trim(name)) {
@@ -937,7 +959,12 @@ Plus roles extended for the Role Parity project.
 
             if (
               name.length &&
-              !hasParentLabelOrHidden(node, ownedBy.top, ownedBy)
+              !hasParentLabelOrHidden(
+                node,
+                ownedBy.top,
+                ownedBy,
+                ignoreHidden,
+              )
             ) {
               result.name = name;
             }
@@ -1556,7 +1583,7 @@ Plus roles extended for the Role Parity project.
         }
         var styles = getPseudoElStyleObj(node, position);
         var text = styles["content"];
-        if (!text || text === "none") {
+        if (!text || text === "none" || text === "normal") {
           return "";
         }
         if (isBlockLevelElement({}, styles)) {
